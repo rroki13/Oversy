@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f1923">
+<title>RistoGest — Gestionale Ristorante</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg:        #0f1923;
+    --bg2:       #162030;
+    --bg3:       #1e2d3d;
+    --bg4:       #243447;
+    --border:    #2a3f54;
+    --accent:    #00c896;
+    --accent2:   #0099ff;
+    --warn:      #f5a623;
+    --danger:    #e8455a;
+    --text:      #e8edf2;
+    --text2:     #8fa8bf;
+    --text3:     #5a7a94;
+    --card-r:    12px;
+    --font-h:    'Space Grotesk', sans-serif;
+    --font-b:    'Inter', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 15px; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-b); min-height: 100vh; }
+
+  /* ── LAYOUT ── */
+  .app { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-brand { display: flex; align-items: center; gap: 10px; }
+  .brand-dot { width: 28px; height: 28px; background: var(--accent); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .brand-name { font-family: var(--font-h); font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+  .brand-name span { color: var(--accent); }
+  .topbar-date { font-size: 12px; color: var(--text3); }
+
+  /* ── NAV TABS ── */
+  .nav {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    display: flex; gap: 4px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-tab {
+    padding: 12px 16px; font-size: 13px; font-weight: 500;
+    color: var(--text3); border: none; background: none; cursor: pointer;
+    border-bottom: 2px solid transparent; white-space: nowrap;
+    transition: color .15s, border-color .15s;
+  }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .nav-tab:hover:not(.active) { color: var(--text2); }
+
+  /* ── MAIN ── */
+  .main { flex: 1; padding: 20px; max-width: 1100px; margin: 0 auto; width: 100%; }
+
+  /* ── PANELS ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── KPI ROW ── */
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .kpi {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--card-r); padding: 16px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .kpi-label { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; }
+  .kpi-value { font-family: var(--font-h); font-size: 24px; font-weight: 700; }
+  .kpi-sub { font-size: 11px; color: var(--text3); }
+  .kpi-green .kpi-value { color: var(--accent); }
+  .kpi-blue .kpi-value { color: var(--accent2); }
+  .kpi-warn .kpi-value { color: var(--warn); }
+  .kpi-danger .kpi-value { color: var(--danger); }
+
+  /* ── SECTION HEADER ── */
+  .sec-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+  .sec-title { font-family: var(--font-h); font-size: 16px; font-weight: 600; }
+  .sec-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+  /* ── SEARCH / FILTER ── */
+  .search-bar {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 14px;
+    font-size: 13px; color: var(--text); width: 220px;
+    outline: none; font-family: var(--font-b);
+  }
+  .search-bar::placeholder { color: var(--text3); }
+  .search-bar:focus { border-color: var(--accent2); }
+
+  /* ── BTN ── */
+  .btn {
+    padding: 8px 16px; border-radius: 8px; border: none;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: var(--font-b); transition: opacity .15s, transform .1s;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--accent); color: #0f1923; }
+  .btn-secondary { background: var(--bg4); color: var(--text); border: 1px solid var(--border); }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+  /* ── TABLE ── */
+  .table-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--card-r); overflow: hidden; margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: var(--bg3); }
+  th { padding: 11px 14px; text-align: left; font-size: 11px; font-weight: 600;
+    color: var(--text3); text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+  td { padding: 11px 14px; font-size: 13px; border-top: 1px solid var(--border); }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  .td-bold { font-weight: 600; }
+  .td-mono { font-family: var(--font-h); font-size: 13px; }
+  .td-right { text-align: right; }
+  .td-center { text-align: center; }
+
+  /* ── STATUS BADGES ── */
+  .badge { display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .badge-ok      { background: rgba(0,200,150,.15); color: var(--accent); }
+  .badge-warn    { background: rgba(245,166,35,.15); color: var(--warn); }
+  .badge-danger  { background: rgba(232,69,90,.15);  color: var(--danger); }
+  .badge-blue    { background: rgba(0,153,255,.15);  color: var(--accent2); }
+
+  /* ── FOOD COST PILL ── */
+  .fc-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  .fc-ok   { background: rgba(0,200,150,.15); color: var(--accent); }
+  .fc-warn { background: rgba(245,166,35,.15); color: var(--warn); }
+  .fc-bad  { background: rgba(232,69,90,.15);  color: var(--danger); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.7); z-index: 200;
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px; width: 100%; max-width: 480px;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-title { font-family: var(--font-h); font-size: 17px; font-weight: 700; margin-bottom: 18px; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; display: block; }
+  .form-input, .form-select {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 12px; font-size: 13px;
+    color: var(--text); font-family: var(--font-b); outline: none;
+    transition: border-color .15s;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--accent2); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+  /* ── ALERT CARD ── */
+  .alert-card {
+    background: var(--bg2); border-left: 3px solid var(--danger);
+    border-radius: var(--card-r); padding: 14px 16px;
+    margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .alert-card.warn { border-left-color: var(--warn); }
+  .alert-name { font-weight: 600; font-size: 14px; }
+  .alert-detail { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .alert-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+
+  /* ── CHART BAR ── */
+  .bar-chart { display: flex; flex-direction: column; gap: 10px; }
+  .bar-row-c { display: flex; align-items: center; gap: 12px; }
+  .bar-label-c { font-size: 12px; color: var(--text2); width: 170px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; background: var(--bg4); border-radius: 4px; height: 8px; }
+  .bar-fill-c { height: 8px; border-radius: 4px; background: var(--accent); transition: width .4s; }
+  .bar-val-c { font-size: 12px; color: var(--text2); width: 60px; text-align: right; flex-shrink: 0; }
+
+  /* ── EMPTY STATE ── */
+  .empty { text-align: center; padding: 48px 20px; color: var(--text3); }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty p { font-size: 14px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 300;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 18px;
+    font-size: 13px; font-weight: 500;
+    transform: translateY(80px); opacity: 0;
+    transition: transform .25s, opacity .25s;
+    max-width: 300px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-left: 3px solid var(--accent); }
+  .toast.error   { border-left: 3px solid var(--danger); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .main { padding: 14px; }
+    .kpi-row { grid-template-columns: 1fr 1fr; }
+    .hide-mobile { display: none; }
+    th, td { padding: 9px 10px; }
+    .bar-label-c { width: 110px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="brand-dot">🍽</div>
+      <div class="brand-name">Risto<span>Gest</span></div>
+    </div>
+    <div class="topbar-date" id="topbar-date"></div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <button class="nav-tab active" onclick="showPanel('dashboard')">📊 Dashboard</button>
+    <button class="nav-tab" onclick="showPanel('magazzino')">📦 Magazzino</button>
+    <button class="nav-tab" onclick="showPanel('ricette')">🍳 Ricette</button>
+    <button class="nav-tab" onclick="showPanel('vendite')">💰 Vendite</button>
+    <button class="nav-tab" onclick="showPanel('alert')">🔔 Alert</button>
+    <button class="nav-tab nav-tab-servizio" onclick="showPanel('servizio')" style="color:#f5a623;font-weight:700;border-bottom:2px solid transparent">⚡ SERVIZIO</button>
+  </nav>
+
+  <main class="main">
+
+    <!-- ═══════════════════ DASHBOARD ═══════════════════ -->
+    <div id="panel-dashboard" class="panel active">
+      <div class="kpi-row" id="kpi-row"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;flex-wrap:wrap;" id="dash-grid">
+        <div>
+          <div class="sec-header"><div><div class="sec-title">Top Piatti per Incasso</div><div class="sec-sub">Periodo corrente</div></div></div>
+          <div class="table-wrap"><div class="bar-chart" id="top-piatti-chart" style="padding:16px"></div></div>
+        </div>
+        <div>
+          <div class="sec-header"><div><div class="sec-title">Food Cost per Piatto</div><div class="sec-sub">Verde &lt;33% · Giallo &lt;40% · Rosso &gt;40%</div></div></div>
+          <div class="table-wrap"><div id="fc-chart" style="padding:16px"></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="sec-header"><div><div class="sec-title">Scorte Critiche</div><div class="sec-sub">Prodotti da ordinare subito</div></div></div>
+        <div id="dash-alerts"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ MAGAZZINO ═══════════════════ -->
+    <div id="panel-magazzino" class="panel">
+      <div class="sec-header">
+        <div><div class="sec-title">📦 Magazzino Ingredienti</div><div class="sec-sub">Aggiorna le scorte dopo ogni turno</div></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input class="search-bar" type="text" placeholder="Cerca ingrediente..." oninput="filterTable('mag-tbody',this.value,1)" style="width:180px">
+          <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-ing')">+ Ingrediente</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Ingrediente</th><th>Categoria</th>
+            <th class="td-right">Scorta</th><th>Unità</th>
+            <th class="td-right">Minima</th><th class="td-right">Prezzo/Unit</th>
+            <th class="td-right">Valore €</th><th>Fornitore</th>
+            <th>Stato</th><th class="td-center">Azioni</th>
+          </tr></thead>
+          <tbody id="mag-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ RICETTE ═══════════════════ -->
+    <div id="panel-ricette" class="panel">
+      <div class="sec-header">
+        <div><div class="sec-title">🍳 Ricette & Food Cost</div><div class="sec-sub">Grammature standard per ogni piatto e bevanda</div></div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-ricetta')">+ Ricetta</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Piatto / Bevanda</th><th>Tipo</th>
+            <th>Ingredienti principali</th>
+            <th class="td-right">Costo (€)</th>
+            <th class="td-right">Prezzo vendita (€)</th>
+            <th class="td-center">Food Cost %</th>
+            <th class="td-right">Margine (€)</th>
+          </tr></thead>
+          <tbody id="ric-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ VENDITE ═══════════════════ -->
+    <div id="panel-vendite" class="panel">
+      <div class="sec-header">
+        <div><div class="sec-title">💰 Vendite Giornaliere</div><div class="sec-sub">Registra le vendite per aggiornare il magazzino</div></div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-vendita')">+ Vendita</button>
+      </div>
+      <div class="kpi-row" id="vendite-kpi"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Data</th><th>Piatto / Bevanda</th><th>Tipo</th>
+            <th class="td-right">Qty</th>
+            <th class="td-right">Prezzo (€)</th>
+            <th class="td-right">Incasso (€)</th>
+            <th class="td-right">Costo (€)</th>
+            <th class="td-right">Margine (€)</th>
+          </tr></thead>
+          <tbody id="vend-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ ALERT ═══════════════════ -->
+    <div id="panel-alert" class="panel">
+      <div class="sec-header"><div><div class="sec-title">🔔 Alert Scorte & Ordini</div><div class="sec-sub">Chiama il fornitore per i prodotti in rosso</div></div></div>
+      <div id="alert-list"></div>
+    </div>
+
+    <!-- ═══════════════════ SERVIZIO ═══════════════════ -->
+    <div id="panel-servizio" class="panel">
+      <div class="serv-header">
+        <div class="serv-title-row">
+          <div>
+            <div class="serv-title">⚡ Modalità Servizio</div>
+            <div class="serv-sub">Tocca un prodotto per aggiornare la scorta in tempo reale</div>
+          </div>
+          <div class="serv-log-btn" onclick="toggleLog()">📋 Registro turno</div>
+        </div>
+        <!-- Filtro categorie -->
+        <div class="cat-scroll" id="cat-filters"></div>
+      </div>
+      <!-- Log turno — visibile subito all'apertura -->
+      <div class="serv-log" id="serv-log">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+          <div class="serv-log-title" style="margin-bottom:0">📋 Registro turno</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary btn-sm" onclick="clearLog()">🗑 Cancella</button>
+            <button class="btn btn-secondary btn-sm" onclick="toggleLog()">✕ Chiudi</button>
+          </div>
+        </div>
+        <div id="serv-log-list"></div>
+      </div>
+
+      <!-- Griglia prodotti -->
+      <div class="serv-grid" id="serv-grid"></div>
+    </div>
+
+  </main>
+</div>
+
+<style>
+/* ── SERVIZIO ── */
+.serv-header { margin-bottom: 18px; }
+.serv-title-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; gap: 12px; }
+.serv-title { font-family: var(--font-h); font-size: 20px; font-weight: 700; color: var(--warn); }
+.serv-sub { font-size: 13px; color: var(--text3); margin-top: 3px; }
+.serv-log-btn { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 14px; font-size: 13px; cursor: pointer; white-space: nowrap;
+  color: var(--text2); transition: background .15s; flex-shrink: 0; }
+.serv-log-btn:hover { background: var(--bg4); }
+
+/* Categoria chips */
+.cat-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.cat-scroll::-webkit-scrollbar { display: none; }
+.cat-chip {
+  padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 500;
+  background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
+  cursor: pointer; white-space: nowrap; transition: all .15s; flex-shrink: 0;
+}
+.cat-chip.active { background: var(--warn); color: #0f1923; border-color: var(--warn); }
+
+/* Griglia prodotti */
+.serv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+
+.serv-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 14px; padding: 14px 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  transition: border-color .15s, transform .1s;
+  position: relative; overflow: hidden;
+}
+.serv-card:active { transform: scale(.97); }
+.serv-card.status-warn { border-color: var(--warn); }
+.serv-card.status-danger { border-color: var(--danger); }
+.serv-card.status-ok { border-color: var(--border); }
+
+.serv-card-icon { font-size: 26px; line-height: 1; }
+.serv-card-name { font-size: 13px; font-weight: 600; text-align: center; line-height: 1.3; }
+.serv-card-unit { font-size: 11px; color: var(--text3); }
+
+/* Quantità con controlli */
+.serv-qty-row { display: flex; align-items: center; gap: 0; width: 100%; justify-content: center; margin-top: 2px; }
+.serv-btn {
+  width: 34px; height: 34px; border-radius: 8px; border: none;
+  font-size: 18px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .1s, transform .08s; flex-shrink: 0;
+}
+.serv-btn:active { transform: scale(.9); }
+.serv-btn-minus { background: rgba(232,69,90,.2); color: var(--danger); }
+.serv-btn-minus:hover { background: rgba(232,69,90,.35); }
+.serv-btn-plus  { background: rgba(0,200,150,.15); color: var(--accent); }
+.serv-btn-plus:hover  { background: rgba(0,200,150,.3); }
+.serv-qty-val {
+  min-width: 52px; text-align: center;
+  font-family: var(--font-h); font-size: 17px; font-weight: 700;
+  padding: 0 4px;
+}
+.serv-qty-val.qty-changed { color: var(--warn); }
+
+/* Step selector */
+.serv-step {
+  font-size: 11px; color: var(--text3); text-align: center;
+  display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;
+}
+.step-opt {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 6px; padding: 2px 7px; cursor: pointer; font-size: 11px;
+  transition: all .1s; color: var(--text2);
+}
+.step-opt.active-step { background: var(--accent2); color: white; border-color: var(--accent2); }
+
+/* Stato scorta */
+.serv-status-bar { height: 3px; width: 100%; border-radius: 2px; margin-top: 2px; }
+
+/* Salva btn */
+.serv-save-btn {
+  width: 100%; padding: 6px; border-radius: 8px; border: none;
+  background: rgba(0,200,150,.15); color: var(--accent); font-size: 12px;
+  font-weight: 600; cursor: pointer; font-family: var(--font-b);
+  transition: background .15s;
+}
+.serv-save-btn:hover { background: rgba(0,200,150,.3); }
+.serv-save-btn.saved { background: rgba(0,200,150,.35); }
+
+/* Log turno */
+.serv-log { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--card-r); padding: 16px; margin-top: 16px; }
+.serv-log-title { font-family: var(--font-h); font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+.log-entry { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.log-entry:last-child { border-bottom: none; }
+.log-nome { font-weight: 500; }
+.log-delta { font-weight: 700; }
+.log-delta.neg { color: var(--danger); }
+.log-delta.pos { color: var(--accent); }
+.log-time { font-size: 11px; color: var(--text3); }
+
+@media (max-width: 480px) {
+  .serv-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 9px; }
+}
+</style>
+
+<!-- ══════════ MODALS ══════════ -->
+<div class="modal-overlay" id="modal-add-ing">
+  <div class="modal">
+    <div class="modal-title">+ Nuovo Ingrediente</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nome *</label><input class="form-input" id="ing-nome" placeholder="es. Gin Hendrick's"></div>
+      <div class="form-group"><label class="form-label">Categoria *</label>
+        <select class="form-select" id="ing-cat">
+          <option>Pasta & Cereali</option><option>Pesce & Frutti mare</option><option>Carni</option>
+          <option>Latticini & Uova</option><option>Verdure & Frutta</option><option>Condimenti</option>
+          <option>Bar - Spirits</option><option>Bar - Soft</option><option>Bar - Birra</option>
+          <option>Bar - Vini</option><option>Dessert</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Unità *</label>
+        <select class="form-select" id="ing-unit">
+          <option>kg</option><option>lt</option><option>bt</option><option>pz</option><option>gr</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Scorta attuale *</label><input class="form-input" id="ing-att" type="number" step="0.01" placeholder="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Scorta minima *</label><input class="form-input" id="ing-min" type="number" step="0.01" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Scorta massima</label><input class="form-input" id="ing-max" type="number" step="0.01" placeholder="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Prezzo unitario (€) *</label><input class="form-input" id="ing-prezzo" type="number" step="0.01" placeholder="0.00"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Fornitore</label><input class="form-input" id="ing-forn" placeholder="Nome fornitore"></div>
+      <div class="form-group"><label class="form-label">Telefono fornitore</label><input class="form-input" id="ing-tel" placeholder="+34 928 ..."></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-ing')">Annulla</button>
+      <button class="btn btn-primary" onclick="addIngrediente()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-ricetta">
+  <div class="modal">
+    <div class="modal-title">+ Nuova Ricetta</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nome piatto *</label><input class="form-input" id="ric-nome" placeholder="es. Gin Tonic Hendrick's"></div>
+      <div class="form-group"><label class="form-label">Tipo</label>
+        <select class="form-select" id="ric-tipo"><option>Cucina</option><option>Bar</option><option>Dessert</option></select>
+      </div>
+    </div>
+    <div id="ric-ingredienti-rows">
+      <div class="form-row ric-ing-row">
+        <div class="form-group"><label class="form-label">Ingrediente 1</label><input class="form-input ric-ing-name" placeholder="Nome ingrediente"></div>
+        <div class="form-group"><label class="form-label">Quantità (unità)</label><input class="form-input ric-ing-qty" type="number" step="0.001" placeholder="0.050"></div>
+        <div class="form-group"><label class="form-label">Costo/unità (€)</label><input class="form-input ric-ing-cost" type="number" step="0.01" placeholder="0.00"></div>
+      </div>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="addIngRow()" style="margin-bottom:12px">+ Ingrediente</button>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Prezzo vendita (€) *</label><input class="form-input" id="ric-prezzo" type="number" step="0.01" placeholder="0.00"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-ricetta')">Annulla</button>
+      <button class="btn btn-primary" onclick="addRicetta()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-vendita">
+  <div class="modal">
+    <div class="modal-title">+ Registra Vendita</div>
+    <div class="form-group"><label class="form-label">Data *</label><input class="form-input" id="vend-data" type="date"></div>
+    <div class="form-group"><label class="form-label">Piatto / Bevanda *</label>
+      <select class="form-select" id="vend-piatto"></select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Quantità *</label><input class="form-input" id="vend-qty" type="number" min="1" placeholder="1"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-vendita')">Annulla</button>
+      <button class="btn btn-primary" onclick="addVendita()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-edit-ing">
+  <div class="modal">
+    <div class="modal-title">Aggiorna Scorta</div>
+    <div class="form-group"><label class="form-label">Ingrediente</label><input class="form-input" id="edit-nome" disabled></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nuova scorta *</label><input class="form-input" id="edit-att" type="number" step="0.01"></div>
+      <div class="form-group"><label class="form-label">Prezzo unitario (€)</label><input class="form-input" id="edit-prezzo" type="number" step="0.01"></div>
+    </div>
+    <input type="hidden" id="edit-idx">
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-ing')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Aggiorna</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+// SUPABASE CONFIG — sostituisci con i tuoi valori
+// ══════════════════════════════════════
+const SUPABASE_URL = 'https://ozyndbuzxhdmszfiggry.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96eW5kYnV6eGhkbXN6ZmlnZ3J5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzMDIxMjIsImV4cCI6MjA5Nzg3ODEyMn0.RVlRWoYOyZKZU6uvXK_KG2WL8sZibWX-KubMogSDhgc';
+const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ══════════════════════════════════════
+// DATA STORE — ora in memoria, caricato da Supabase
+// ══════════════════════════════════════
+let db = { ingredienti: [], ricette: [], vendite: [] };
+
+// ══════════════════════════════════════
+// SUPABASE LOAD & SAVE
+// ══════════════════════════════════════
+let appReady = false;
+
+async function loadAll(){
+  showLoadingOverlay(true);
+  try {
+    const [ings, rics, vends] = await Promise.all([
+      supa.from('ingredienti').select('*').order('cat').order('nome'),
+      supa.from('ricette').select('*').order('tipo').order('nome'),
+      supa.from('vendite').select('*').order('data', {ascending:false}),
+    ]);
+    db.ingredienti = (ings.data  || []).map(r=>({...r, att:parseFloat(r.att), min:parseFloat(r.min), max:parseFloat(r.max), prezzo:parseFloat(r.prezzo)}));
+    db.ricette     = (rics.data  || []).map(r=>({...r, prezzo:parseFloat(r.prezzo), ings: typeof r.ings==='string'?JSON.parse(r.ings):r.ings}));
+    db.vendite     = (vends.data || []).map(r=>({...r, prezzo:parseFloat(r.prezzo), costo_unit:parseFloat(r.costo_unit)}));
+    appReady = true;
+    renderDashboard();
+  } catch(e) {
+    showToast('Errore connessione Supabase — controlla URL e KEY', 'error');
+    console.error(e);
+  }
+  showLoadingOverlay(false);
+}
+
+function showLoadingOverlay(show){
+  let el = document.getElementById('loading-overlay');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'loading-overlay';
+    el.innerHTML = '<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px">⏳</div><div style="font-size:14px;color:#8fa8bf">Caricamento dati...</div></div>';
+    el.style.cssText = 'position:fixed;inset:0;background:#0f1923;z-index:999;display:flex;align-items:center;justify-content:center;';
+    document.body.appendChild(el);
+  }
+  el.style.display = show ? 'flex' : 'none';
+}
+
+// Save ingredient update to Supabase
+async function saveIngToDB(ing){
+  const {error} = await supa.from('ingredienti').update({att: ing.att, prezzo: ing.prezzo}).eq('id', ing.id);
+  if(error) showToast('Errore salvataggio: '+error.message,'error');
+}
+
+async function insertIngToDB(ing){
+  const {data,error} = await supa.from('ingredienti').insert([{
+    nome:ing.nome,cat:ing.cat,unit:ing.unit,att:ing.att,min:ing.min,max:ing.max,prezzo:ing.prezzo,forn:ing.forn,tel:ing.tel
+  }]).select().single();
+  if(error){showToast('Errore: '+error.message,'error'); return null;}
+  return data;
+}
+
+async function insertRicettaToDB(ric){
+  const {data,error} = await supa.from('ricette').insert([{
+    nome:ric.nome, tipo:ric.tipo, prezzo:ric.prezzo, ings:JSON.stringify(ric.ings)
+  }]).select().single();
+  if(error){showToast('Errore: '+error.message,'error'); return null;}
+  return data;
+}
+
+async function insertVenditaToDB(v){
+  const {data,error} = await supa.from('vendite').insert([{
+    data:v.data, piatto:v.piatto, tipo:v.tipo, qty:v.qty, prezzo:v.prezzo, costo_unit:v.costo_unit
+  }]).select().single();
+  if(error){showToast('Errore: '+error.message,'error'); return null;}
+  return data;
+}
+
+async function insertLogToDB(entry){
+  await supa.from('log_turno').insert([{
+    nome:entry.nome, old_qty:entry.oldQty, new_qty:entry.newQty,
+    delta:entry.delta, unit:entry.unit, turno_time:entry.time
+  }]);
+}
+
+function save(){ /* dati salvati direttamente su Supabase */ }
+
+// ══════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════
+function fmt(n){ return '€' + Number(n).toFixed(2); }
+function pct(n){ return (n*100).toFixed(1)+'%'; }
+
+function getStatus(ing){
+  if(ing.att <= ing.min * 0.5) return {label:'🔴 Critico', cls:'badge-danger'};
+  if(ing.att <= ing.min)       return {label:'🟡 Attenzione', cls:'badge-warn'};
+  return {label:'🟢 OK', cls:'badge-ok'};
+}
+
+function fcClass(fc){
+  if(fc <= 0.33) return 'fc-ok';
+  if(fc <= 0.40) return 'fc-warn';
+  return 'fc-bad';
+}
+
+function ricettaCosto(ric){
+  return ric.ings.reduce((s,i)=>s+i.q*i.c, 0);
+}
+
+function showToast(msg, type='success'){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+function filterTable(tbodyId, q, col){
+  const rows = document.getElementById(tbodyId).querySelectorAll('tr');
+  rows.forEach(r=>{
+    const cell = r.cells[col];
+    r.style.display = cell && cell.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+function showPanel(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if(name==='dashboard') renderDashboard();
+  if(name==='magazzino') renderMagazzino();
+  if(name==='ricette') renderRicette();
+  if(name==='vendite') renderVendite();
+  if(name==='alert') renderAlert();
+  if(name==='servizio') renderServizio();
+}
+
+// ══════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════
+function renderDashboard(){
+  // KPI
+  const totIncasso = db.vendite.reduce((s,v)=>s+v.qty*v.prezzo,0);
+  const totCosto   = db.vendite.reduce((s,v)=>s+v.qty*v.costo_unit,0);
+  const fc = totIncasso > 0 ? totCosto/totIncasso : 0;
+  const valMag = db.ingredienti.reduce((s,i)=>s+i.att*i.prezzo,0);
+  const critici = db.ingredienti.filter(i=>i.att<=i.min).length;
+
+  document.getElementById('kpi-row').innerHTML = `
+    <div class="kpi kpi-green"><div class="kpi-label">Incasso Totale</div><div class="kpi-value">${fmt(totIncasso)}</div><div class="kpi-sub">Periodo corrente</div></div>
+    <div class="kpi kpi-blue"><div class="kpi-label">Margine Lordo</div><div class="kpi-value">${fmt(totIncasso-totCosto)}</div><div class="kpi-sub">Dopo costo ingredienti</div></div>
+    <div class="kpi ${fc>0.4?'kpi-danger':fc>0.33?'kpi-warn':'kpi-green'}"><div class="kpi-label">Food Cost Medio</div><div class="kpi-value">${pct(fc)}</div><div class="kpi-sub">Target: 25–33%</div></div>
+    <div class="kpi kpi-blue"><div class="kpi-label">Valore Magazzino</div><div class="kpi-value">${fmt(valMag)}</div><div class="kpi-sub">Scorte attuali</div></div>
+    <div class="kpi ${critici>0?'kpi-danger':'kpi-green'}"><div class="kpi-label">Scorte Critiche</div><div class="kpi-value">${critici}</div><div class="kpi-sub">Prodotti da ordinare</div></div>
+  `;
+
+  // Top piatti bar chart
+  const byPiatto = {};
+  db.vendite.forEach(v=>{ byPiatto[v.piatto]=(byPiatto[v.piatto]||0)+v.qty*v.prezzo; });
+  const sorted = Object.entries(byPiatto).sort((a,b)=>b[1]-a[1]).slice(0,7);
+  const maxVal = sorted[0]?.[1]||1;
+  document.getElementById('top-piatti-chart').innerHTML = sorted.map(([nome,val])=>`
+    <div class="bar-row-c">
+      <div class="bar-label-c">${nome}</div>
+      <div class="bar-track"><div class="bar-fill-c" style="width:${val/maxVal*100}%"></div></div>
+      <div class="bar-val-c">${fmt(val)}</div>
+    </div>`).join('');
+
+  // Food cost per ricetta
+  const fcRows = db.ricette.map(r=>{
+    const c = ricettaCosto(r);
+    const fc = r.prezzo > 0 ? c/r.prezzo : 0;
+    return {nome:r.nome, fc};
+  }).sort((a,b)=>b.fc-a.fc).slice(0,8);
+  document.getElementById('fc-chart').innerHTML = `<div class="bar-chart">`+fcRows.map(r=>`
+    <div class="bar-row-c">
+      <div class="bar-label-c">${r.nome}</div>
+      <span class="fc-pill ${fcClass(r.fc)}">${pct(r.fc)}</span>
+    </div>`).join('')+`</div>`;
+
+  // Alert
+  const crit = db.ingredienti.filter(i=>i.att<=i.min);
+  document.getElementById('dash-alerts').innerHTML = crit.length===0
+    ? `<div class="empty"><div class="empty-icon">✅</div><p>Tutte le scorte sono sufficienti</p></div>`
+    : crit.map(i=>{
+        const st = getStatus(i);
+        const daOrd = Math.max(0, i.max - i.att).toFixed(2);
+        return `<div class="alert-card ${st.cls==='badge-warn'?'warn':''}">
+          <div><div class="alert-name">${i.nome}</div>
+          <div class="alert-detail">${i.cat} · Scorta: ${i.att} ${i.unit} (min: ${i.min}) · Fornitore: ${i.forn}</div></div>
+          <div class="alert-right">
+            <span class="badge ${st.cls}">${st.label}</span>
+            <span style="font-size:12px;color:var(--text3)">Da ordinare: <b>${daOrd} ${i.unit}</b></span>
+            <a href="tel:${i.tel}" style="font-size:12px;color:var(--accent2)">${i.tel}</a>
+          </div>
+        </div>`;
+      }).join('');
+}
+
+// ══════════════════════════════════════
+// MAGAZZINO
+// ══════════════════════════════════════
+function renderMagazzino(){
+  const tb = document.getElementById('mag-tbody');
+  tb.innerHTML = db.ingredienti.map((ing,i)=>{
+    const st = getStatus(ing);
+    const val = (ing.att * ing.prezzo).toFixed(2);
+    return `<tr>
+      <td class="td-bold">${ing.nome}</td>
+      <td><span style="font-size:12px;color:var(--text3)">${ing.cat}</span></td>
+      <td class="td-right td-mono">${ing.att}</td>
+      <td style="color:var(--text3);font-size:12px">${ing.unit}</td>
+      <td class="td-right" style="color:var(--warn)">${ing.min}</td>
+      <td class="td-right">${fmt(ing.prezzo)}</td>
+      <td class="td-right td-mono" style="color:var(--accent)">${fmt(val)}</td>
+      <td style="font-size:12px">${ing.forn}<br><a href="tel:${ing.tel}" style="color:var(--accent2);font-size:11px">${ing.tel}</a></td>
+      <td><span class="badge ${st.cls}">${st.label}</span></td>
+      <td class="td-center"><button class="btn btn-secondary btn-sm" onclick="openEdit(${i})">✏️ Edit</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// RICETTE
+// ══════════════════════════════════════
+function renderRicette(){
+  const tb = document.getElementById('ric-tbody');
+  tb.innerHTML = db.ricette.map(r=>{
+    const costo = ricettaCosto(r);
+    const fc = r.prezzo > 0 ? costo/r.prezzo : 0;
+    const margine = r.prezzo - costo;
+    const ingList = r.ings.map(i=>`${i.n} (${i.q})`).join(', ');
+    const tipoBadge = r.tipo==='Bar'?'badge-blue':r.tipo==='Dessert'?'badge-warn':'badge-ok';
+    return `<tr>
+      <td class="td-bold">${r.nome}</td>
+      <td><span class="badge ${tipoBadge}">${r.tipo}</span></td>
+      <td style="font-size:12px;color:var(--text3);max-width:220px">${ingList}</td>
+      <td class="td-right td-mono">${fmt(costo)}</td>
+      <td class="td-right td-mono" style="color:var(--accent2)">${fmt(r.prezzo)}</td>
+      <td class="td-center"><span class="fc-pill ${fcClass(fc)}">${pct(fc)}</span></td>
+      <td class="td-right td-mono" style="color:var(--accent)">${fmt(margine)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// VENDITE
+// ══════════════════════════════════════
+function renderVendite(){
+  const totIncasso = db.vendite.reduce((s,v)=>s+v.qty*v.prezzo,0);
+  const totCosto   = db.vendite.reduce((s,v)=>s+v.qty*v.costo_unit,0);
+  const totMargine = totIncasso - totCosto;
+  document.getElementById('vendite-kpi').innerHTML = `
+    <div class="kpi kpi-green"><div class="kpi-label">Incasso</div><div class="kpi-value">${fmt(totIncasso)}</div></div>
+    <div class="kpi kpi-warn"><div class="kpi-label">Costo Ingredienti</div><div class="kpi-value">${fmt(totCosto)}</div></div>
+    <div class="kpi kpi-blue"><div class="kpi-label">Margine</div><div class="kpi-value">${fmt(totMargine)}</div></div>
+  `;
+
+  const tb = document.getElementById('vend-tbody');
+  const sorted = [...db.vendite].sort((a,b)=>b.data.localeCompare(a.data));
+  tb.innerHTML = sorted.map((v,i)=>{
+    const incasso = v.qty * v.prezzo;
+    const costo   = v.qty * v.costo_unit;
+    const margine = incasso - costo;
+    const tipoBadge = v.tipo==='Bar'?'badge-blue':v.tipo==='Dessert'?'badge-warn':'badge-ok';
+    return `<tr>
+      <td style="font-size:12px;color:var(--text3)">${v.data}</td>
+      <td class="td-bold">${v.piatto}</td>
+      <td><span class="badge ${tipoBadge}">${v.tipo}</span></td>
+      <td class="td-right td-mono">${v.qty}</td>
+      <td class="td-right">${fmt(v.prezzo)}</td>
+      <td class="td-right td-mono" style="color:var(--accent)">${fmt(incasso)}</td>
+      <td class="td-right" style="color:var(--danger)">${fmt(costo)}</td>
+      <td class="td-right td-mono" style="color:var(--accent2)">${fmt(margine)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// ALERT
+// ══════════════════════════════════════
+function renderAlert(){
+  const probs = db.ingredienti.filter(i=>i.att<=i.min).sort((a,b)=>(a.att/a.min)-(b.att/b.min));
+  const al = document.getElementById('alert-list');
+  if(probs.length===0){
+    al.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><p>Tutte le scorte sono OK — nessun ordine necessario</p></div>`;
+    return;
+  }
+  al.innerHTML = probs.map(i=>{
+    const st = getStatus(i);
+    const daOrd = Math.max(0, i.max - i.att).toFixed(2);
+    const costoOrd = (daOrd * i.prezzo).toFixed(2);
+    return `<div class="alert-card ${st.cls==='badge-warn'?'warn':''}">
+      <div style="flex:1">
+        <div class="alert-name">${i.nome} <span class="badge ${st.cls}" style="margin-left:6px">${st.label}</span></div>
+        <div class="alert-detail" style="margin-top:4px">
+          Scorta attuale: <b>${i.att} ${i.unit}</b> · Minima: <b>${i.min} ${i.unit}</b> · Categoria: ${i.cat}
+        </div>
+        <div class="alert-detail" style="margin-top:2px">
+          Da ordinare: <b style="color:var(--warn)">${daOrd} ${i.unit}</b> · Costo stimato ordine: <b style="color:var(--accent)">${fmt(costoOrd)}</b>
+        </div>
+        <div class="alert-detail" style="margin-top:4px">📞 ${i.forn} · <a href="tel:${i.tel}" style="color:var(--accent2)">${i.tel}</a></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+        <a href="tel:${i.tel}" class="btn btn-primary btn-sm">📞 Chiama</a>
+        <a href="https://wa.me/${i.tel.replace(/\D/g,'')}" target="_blank" class="btn btn-secondary btn-sm">💬 WhatsApp</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════
+function openModal(id){
+  if(id==='modal-add-vendita'){
+    const sel = document.getElementById('vend-piatto');
+    sel.innerHTML = db.ricette.map(r=>`<option value="${r.nome}">${r.nome} (${r.tipo}) — ${fmt(r.prezzo)}</option>`).join('');
+    document.getElementById('vend-data').value = new Date().toISOString().slice(0,10);
+  }
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('open'); });
+});
+
+async function addIngrediente(){
+  const nome = document.getElementById('ing-nome').value.trim();
+  if(!nome){ showToast('Inserisci il nome','error'); return; }
+  const ing = {
+    nome, cat: document.getElementById('ing-cat').value,
+    unit: document.getElementById('ing-unit').value,
+    att: parseFloat(document.getElementById('ing-att').value)||0,
+    min: parseFloat(document.getElementById('ing-min').value)||0,
+    max: parseFloat(document.getElementById('ing-max').value)||0,
+    prezzo: parseFloat(document.getElementById('ing-prezzo').value)||0,
+    forn: document.getElementById('ing-forn').value,
+    tel: document.getElementById('ing-tel').value,
+  };
+  const saved = await insertIngToDB(ing);
+  if(!saved) return;
+  db.ingredienti.push({...ing, id: saved.id});
+  closeModal('modal-add-ing'); renderMagazzino();
+  showToast(`${nome} aggiunto al magazzino ✓`);
+  ['ing-nome','ing-att','ing-min','ing-max','ing-prezzo','ing-forn','ing-tel'].forEach(id=>document.getElementById(id).value='');
+}
+
+function addIngRow(){
+  const container = document.getElementById('ric-ingredienti-rows');
+  const idx = container.querySelectorAll('.ric-ing-row').length + 1;
+  const div = document.createElement('div');
+  div.className = 'form-row ric-ing-row';
+  div.innerHTML = `
+    <div class="form-group"><label class="form-label">Ingrediente ${idx}</label><input class="form-input ric-ing-name" placeholder="Nome ingrediente"></div>
+    <div class="form-group"><label class="form-label">Quantità</label><input class="form-input ric-ing-qty" type="number" step="0.001" placeholder="0.050"></div>
+    <div class="form-group"><label class="form-label">Costo/unità (€)</label><input class="form-input ric-ing-cost" type="number" step="0.01" placeholder="0.00"></div>`;
+  container.appendChild(div);
+}
+
+async function addRicetta(){
+  const nome = document.getElementById('ric-nome').value.trim();
+  const prezzo = parseFloat(document.getElementById('ric-prezzo').value)||0;
+  if(!nome||!prezzo){ showToast('Compila nome e prezzo','error'); return; }
+  const names = document.querySelectorAll('.ric-ing-name');
+  const qtys  = document.querySelectorAll('.ric-ing-qty');
+  const costs = document.querySelectorAll('.ric-ing-cost');
+  const ings = [];
+  names.forEach((n,i)=>{ if(n.value.trim()) ings.push({n:n.value.trim(),q:parseFloat(qtys[i].value)||0,c:parseFloat(costs[i].value)||0}); });
+  const ric = { nome, tipo: document.getElementById('ric-tipo').value, ings, prezzo };
+  const saved = await insertRicettaToDB(ric);
+  if(!saved) return;
+  db.ricette.push({...ric, id: saved.id});
+  closeModal('modal-add-ricetta'); renderRicette();
+  showToast(`Ricetta "${nome}" salvata ✓`);
+}
+
+async function addVendita(){
+  const piatto = document.getElementById('vend-piatto').value;
+  const qty    = parseInt(document.getElementById('vend-qty').value)||1;
+  const data   = document.getElementById('vend-data').value;
+  const ric    = db.ricette.find(r=>r.nome===piatto);
+  if(!ric){ showToast('Piatto non trovato','error'); return; }
+  const costo_unit = ricettaCosto(ric);
+  const v = { data, piatto, tipo: ric.tipo, qty, prezzo: ric.prezzo, costo_unit };
+  const saved = await insertVenditaToDB(v);
+  if(!saved) return;
+  db.vendite.unshift({...v, id: saved.id});
+  closeModal('modal-add-vendita'); renderVendite();
+  showToast(`${qty}× ${piatto} registrati ✓`);
+}
+
+function openEdit(i){
+  const ing = db.ingredienti[i];
+  document.getElementById('edit-nome').value   = ing.nome;
+  document.getElementById('edit-att').value    = ing.att;
+  document.getElementById('edit-prezzo').value = ing.prezzo;
+  document.getElementById('edit-idx').value    = i;
+  openModal('modal-edit-ing');
+}
+async function saveEdit(){
+  const i   = parseInt(document.getElementById('edit-idx').value);
+  const att = parseFloat(document.getElementById('edit-att').value);
+  const pr  = parseFloat(document.getElementById('edit-prezzo').value);
+  if(isNaN(att)){ showToast('Inserisci una quantità valida','error'); return; }
+  db.ingredienti[i].att    = att;
+  db.ingredienti[i].prezzo = pr || db.ingredienti[i].prezzo;
+  await saveIngToDB(db.ingredienti[i]);
+  closeModal('modal-edit-ing'); renderMagazzino();
+  showToast(`Scorta aggiornata ✓`);
+}
+
+// ══════════════════════════════════════
+// SERVIZIO
+// ══════════════════════════════════════
+const CATEGORIE_ICONS = {
+  'Pasta & Cereali':     '🍝',
+  'Pesce & Frutti mare': '🐟',
+  'Carni':               '🥩',
+  'Latticini & Uova':    '🧀',
+  'Verdure & Frutta':    '🥗',
+  'Condimenti':          '🫙',
+  'Bar - Spirits':       '🥃',
+  'Bar - Soft':          '🥤',
+  'Bar - Birra':         '🍺',
+  'Bar - Vini':          '🍷',
+  'Dessert':             '🍮',
+};
+
+let servCatAttiva = 'Tutte';
+let servTurnoLog  = JSON.parse(localStorage.getItem('ristogest_log') || '[]');
+// stepSizes per ogni ingrediente (indice nel db)
+let servSteps     = {};
+
+function saveLog(){ try{ localStorage.setItem('ristogest_log', JSON.stringify(servTurnoLog)); }catch(e){} }
+
+function renderServizio(){
+  const cats = ['Tutte', ...Object.keys(CATEGORIE_ICONS)];
+  document.getElementById('cat-filters').innerHTML = cats.map(c=>`
+    <div class="cat-chip ${c===servCatAttiva?'active':''}" onclick="setCat('${c}')">
+      ${CATEGORIE_ICONS[c]||'📦'} ${c}
+    </div>`).join('');
+  renderLog();   // mostra registro subito all'apertura
+  renderServGrid();
+}
+
+function toggleLog(){
+  const log = document.getElementById('serv-log');
+  log.style.display = log.style.display==='none' ? 'block' : 'none';
+  if(log.style.display==='block') renderLog();
+}
+
+function renderLog(){
+  const log = document.getElementById('serv-log');
+  // mantieni visibile se già aperto, altrimenti mostralo solo se ci sono movimenti
+  if(servTurnoLog.length === 0){
+    document.getElementById('serv-log-list').innerHTML =
+      `<div style="color:var(--text3);font-size:13px;padding:8px 0;text-align:center">
+        ✅ Nessun movimento registrato in questo turno
+      </div>`;
+  } else {
+    // riepilogo veloce in cima
+    const totMovimenti = servTurnoLog.length;
+    const prodotti = [...new Set(servTurnoLog.map(e=>e.nome))];
+    document.getElementById('serv-log-list').innerHTML =
+      `<div style="background:var(--bg3);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:var(--text2);display:flex;gap:16px;flex-wrap:wrap">
+        <span>📦 <b style="color:var(--text)">${totMovimenti}</b> movimenti</span>
+        <span>🛒 <b style="color:var(--text)">${prodotti.length}</b> prodotti toccati</span>
+        <span>🕐 Ultimo: <b style="color:var(--text)">${servTurnoLog[0].time}</b></span>
+      </div>`
+      + servTurnoLog.slice(0,30).map(e=>`
+        <div class="log-entry">
+          <div>
+            <div class="log-nome">${e.nome}</div>
+            <div class="log-time">${e.time} · ${e.oldQty.toFixed(2)} → ${e.newQty.toFixed(2)} ${e.unit}</div>
+          </div>
+          <div class="log-delta ${e.delta<0?'neg':'pos'}">${e.delta>0?'+':''}${e.delta.toFixed(2)} ${e.unit}</div>
+        </div>`).join('');
+  }
+}
+
+function setCat(cat){
+  servCatAttiva = cat;
+  const cats = ['Tutte', ...Object.keys(CATEGORIE_ICONS)];
+  document.getElementById('cat-filters').innerHTML = cats.map(c=>`
+    <div class="cat-chip ${c===servCatAttiva?'active':''}" onclick="setCat('${c}')">
+      ${CATEGORIE_ICONS[c]||'📦'} ${c}
+    </div>`).join('');
+  renderServGrid();
+}
+
+function renderServGrid(){
+  const filtered = servCatAttiva==='Tutte'
+    ? db.ingredienti
+    : db.ingredienti.filter(i=>i.cat===servCatAttiva);
+
+  if(filtered.length===0){
+    document.getElementById('serv-grid').innerHTML =
+      `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📦</div><p>Nessun prodotto in questa categoria</p></div>`;
+    return;
+  }
+
+  document.getElementById('serv-grid').innerHTML = filtered.map(ing=>{
+    const idx = db.ingredienti.indexOf(ing);
+    const st  = getStatus(ing);
+    const stClass = st.cls==='badge-danger'?'status-danger': st.cls==='badge-warn'?'status-warn':'status-ok';
+    const barColor = st.cls==='badge-danger'?'var(--danger)':st.cls==='badge-warn'?'var(--warn)':'var(--accent)';
+    const pct = Math.min(100, Math.round(ing.att / (ing.max||ing.att||1) * 100));
+    const icon = CATEGORIE_ICONS[ing.cat] || '📦';
+
+    // step options basate sull'unità
+    const steps = getSteps(ing.unit);
+    if(!servSteps[idx]) servSteps[idx] = steps[0];
+    const activeStep = servSteps[idx];
+
+    return `<div class="serv-card ${stClass}" id="sc-${idx}">
+      <div class="serv-card-icon">${icon}</div>
+      <div class="serv-card-name">${ing.nome}</div>
+      <div class="serv-card-unit">${ing.att.toFixed(2)} ${ing.unit}</div>
+      <div class="serv-status-bar" style="background:var(--bg4)">
+        <div style="height:3px;border-radius:2px;background:${barColor};width:${pct}%;transition:width .3s"></div>
+      </div>
+      <div class="serv-step" id="step-row-${idx}">
+        ${steps.map(s=>`<span class="step-opt ${s===activeStep?'active-step':''}" onclick="setStep(${idx},'${s}','${ing.unit}')">${s} ${ing.unit}</span>`).join('')}
+      </div>
+      <div class="serv-qty-row">
+        <button class="serv-btn serv-btn-minus" onclick="adjQty(${idx},-1)">−</button>
+        <div class="serv-qty-val" id="qty-${idx}">${ing.att.toFixed(2)}</div>
+        <button class="serv-btn serv-btn-plus"  onclick="adjQty(${idx},+1)">+</button>
+      </div>
+      <button class="serv-save-btn" id="save-btn-${idx}" onclick="saveQty(${idx})">💾 Salva</button>
+    </div>`;
+  }).join('');
+}
+
+function getSteps(unit){
+  switch(unit){
+    case 'kg': return [0.1, 0.5, 1];
+    case 'lt': return [0.1, 0.5, 1];
+    case 'bt': return [1, 6, 12];
+    case 'pz': return [1, 6, 12, 24];
+    case 'gr': return [100, 250, 500];
+    default:   return [1];
+  }
+}
+
+function setStep(idx, step, unit){
+  servSteps[idx] = parseFloat(step);
+  // re-render just that card's step row
+  const steps = getSteps(unit);
+  document.getElementById(`step-row-${idx}`).innerHTML = steps.map(s=>`
+    <span class="step-opt ${s===servSteps[idx]?'active-step':''}" onclick="setStep(${idx},'${s}','${unit}')">${s} ${unit}</span>`).join('');
+}
+
+// Pending changes before save
+let pendingQty = {}; // idx -> new qty (unsaved)
+
+function adjQty(idx, dir){
+  const ing  = db.ingredienti[idx];
+  const step = servSteps[idx] || getSteps(ing.unit)[0];
+  const current = pendingQty[idx] !== undefined ? pendingQty[idx] : ing.att;
+  const next = Math.max(0, Math.round((current + dir * step) * 1000) / 1000);
+  pendingQty[idx] = next;
+
+  const el = document.getElementById(`qty-${idx}`);
+  el.textContent = next.toFixed(2);
+  el.classList.add('qty-changed');
+
+  // update status bar color live
+  const fakeing = {...ing, att: next};
+  const st = getStatus(fakeing);
+  const barColor = st.cls==='badge-danger'?'var(--danger)':st.cls==='badge-warn'?'var(--warn)':'var(--accent)';
+  const pct = Math.min(100, Math.round(next / (ing.max||ing.att||1) * 100));
+  const card = document.getElementById(`sc-${idx}`);
+  const bar = card.querySelector('.serv-status-bar div');
+  if(bar){ bar.style.width=pct+'%'; bar.style.background=barColor; }
+}
+
+function saveQty(idx){
+  const ing = db.ingredienti[idx];
+  if(pendingQty[idx] === undefined) return;
+  const oldQty = ing.att;
+  const newQty = pendingQty[idx];
+  const delta  = newQty - oldQty;
+  ing.att = newQty;
+  delete pendingQty[idx];
+
+  // log entry
+  const now = new Date();
+  const logEntry = {
+    nome: ing.nome, oldQty, newQty, delta, unit: ing.unit,
+    time: now.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})
+  };
+  servTurnoLog.unshift(logEntry);
+  saveIngToDB(ing);
+  insertLogToDB(logEntry);
+  saveLog();
+
+  // visual feedback
+  const el = document.getElementById(`qty-${idx}`);
+  el.textContent = newQty.toFixed(2);
+  el.classList.remove('qty-changed');
+  const card = document.getElementById(`sc-${idx}`);
+  const st   = getStatus(ing);
+  card.className = `serv-card ${st.cls==='badge-danger'?'status-danger':st.cls==='badge-warn'?'status-warn':'status-ok'}`;
+  const saveBtn = document.getElementById(`save-btn-${idx}`);
+  saveBtn.textContent = '✓ Salvato';
+  saveBtn.classList.add('saved');
+  setTimeout(()=>{ saveBtn.textContent='💾 Salva'; saveBtn.classList.remove('saved'); }, 1500);
+
+  // unit label update
+  card.querySelector('.serv-card-unit').textContent = `${newQty.toFixed(2)} ${ing.unit}`;
+  showToast(`${ing.nome}: ${delta>0?'+':''}${delta.toFixed(2)} ${ing.unit} salvato`);
+  renderLog();
+}
+
+function toggleLog(){
+  const log = document.getElementById('serv-log');
+  log.style.display = log.style.display==='none' ? 'block' : 'none';
+  renderLog();
+}
+
+function renderLog(){
+  if(!servTurnoLog.length){
+    document.getElementById('serv-log-list').innerHTML = `<div style="color:var(--text3);font-size:13px;padding:8px 0">Nessun movimento registrato</div>`;
+    return;
+  }
+  document.getElementById('serv-log-list').innerHTML = servTurnoLog.slice(0,20).map(e=>`
+    <div class="log-entry">
+      <div><div class="log-nome">${e.nome}</div><div class="log-time">${e.time} · ${e.oldQty.toFixed(2)} → ${e.newQty.toFixed(2)} ${e.unit}</div></div>
+      <div class="log-delta ${e.delta<0?'neg':'pos'}">${e.delta>0?'+':''}${e.delta.toFixed(2)} ${e.unit}</div>
+    </div>`).join('');
+}
+
+function clearLog(){
+  servTurnoLog = [];
+  saveLog();
+  renderLog();
+  showToast('Registro turno cancellato');
+}
+document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
+renderDashboard();
+</script>
+</body>
+</html>
