@@ -736,6 +736,67 @@ function filterTable(tbodyId, q, col){
 
 
 // ══════════════════════════════════════
+// UTILS & MODAL
+// ══════════════════════════════════════
+function fmt(n){ return '€'+Number(n).toFixed(2); }
+function pct(n){ return (n*100).toFixed(1)+'%'; }
+function fcClass(fc){ return fc<=0.33?'fc-ok':fc<=0.40?'fc-warn':'fc-bad'; }
+function ricettaCosto(r){ return r.ings.reduce((s,i)=>s+i.q*i.c,0); }
+
+function getStatus(ing){
+  if(ing.att<=ing.min*0.5) return {label:'🔴 Critico',cls:'badge-danger'};
+  if(ing.att<=ing.min)     return {label:'🟡 Attenzione',cls:'badge-warn'};
+  return {label:'🟢 OK',cls:'badge-ok'};
+}
+
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function openModal(id){
+  if(id==='modal-add-vendita'){
+    const sel=document.getElementById('vend-piatto');
+    sel.innerHTML=db.ricette.map(r=>`<option value="${r.nome}">${r.nome} (${r.tipo}) — ${fmt(r.prezzo)}</option>`).join('');
+    document.getElementById('vend-data').value=new Date().toISOString().slice(0,10);
+  }
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.addEventListener('click', e=>{
+  if(e.target.classList.contains('overlay')) e.target.classList.remove('open');
+});
+
+function filterTable(tbodyId,q,col){
+  document.getElementById(tbodyId).querySelectorAll('tr').forEach(r=>{
+    const cell=r.cells[col];
+    r.style.display=cell&&cell.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';
+  });
+}
+
+function addIngRow(){
+  const container=document.getElementById('ric-ingredienti-rows');
+  const idx=container.querySelectorAll('.ric-ing-row').length+1;
+  const div=document.createElement('div');
+  div.className='form-row ric-ing-row';
+  div.innerHTML=`
+    <div class="form-group"><label class="form-label">Ingrediente ${idx}</label><input class="form-input ric-ing-name" placeholder="Nome"></div>
+    <div class="form-group"><label class="form-label">Quantità</label><input class="form-input ric-ing-qty" type="number" step="0.001" placeholder="0.050"></div>
+    <div class="form-group"><label class="form-label">€/unità</label><input class="form-input ric-ing-cost" type="number" step="0.01" placeholder="0.00"></div>`;
+  container.appendChild(div);
+}
+
+function openEdit(i){
+  const ing=db.ingredienti[i];
+  document.getElementById('edit-nome').value=ing.nome;
+  document.getElementById('edit-att').value=ing.att;
+  document.getElementById('edit-prezzo').value=ing.prezzo;
+  document.getElementById('edit-idx').value=i;
+  openModal('modal-edit-ing');
+}
+
+// ══════════════════════════════════════
 // AUTH SYSTEM
 // ══════════════════════════════════════
 let currentUser = null;
