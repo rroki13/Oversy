@@ -3,471 +3,464 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0f1923">
-<title>RistoGest — Gestionale Ristorante</title>
+<meta name="theme-color" content="#0e1117">
+<title>Oversy — Gestionale Ristorante</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+:root{
+  --blue:#4f8ef7;--blue2:#2563eb;--blue3:#1d4ed8;
+  --blue-dim:rgba(79,142,247,.13);--blue-glow:rgba(79,142,247,.25);
+  --wood:#8b5e3c;--wood2:#a0724e;--wood-dim:rgba(139,94,60,.15);
+  --white:#f8faff;--bg:#0e1117;--bg2:#141923;--bg3:#1a2133;--bg4:#212b40;
+  --border:#253048;--text:#e8eef8;--text2:#8899bb;--text3:#4a5a7a;
+  --danger:#f05a5a;--danger-dim:rgba(240,90,90,.13);
+  --warn:#f0a035;--warn-dim:rgba(240,160,53,.13);
+  --green:#34d399;--green-dim:rgba(52,211,153,.13);
+  --r:12px;--font-h:'Syne',sans-serif;--font-b:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);min-height:100vh}
 
-  :root {
-    --bg:        #0f1923;
-    --bg2:       #162030;
-    --bg3:       #1e2d3d;
-    --bg4:       #243447;
-    --border:    #2a3f54;
-    --accent:    #00c896;
-    --accent2:   #0099ff;
-    --warn:      #f5a623;
-    --danger:    #e8455a;
-    --text:      #e8edf2;
-    --text2:     #8fa8bf;
-    --text3:     #5a7a94;
-    --card-r:    12px;
-    --font-h:    'Space Grotesk', sans-serif;
-    --font-b:    'Inter', sans-serif;
-  }
+/* LOGIN SCREEN */
+.login-screen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:var(--bg);padding:20px;
+}
+.login-box{
+  background:var(--bg2);border:1px solid var(--border);border-radius:20px;
+  padding:40px 36px;width:100%;max-width:380px;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+}
+.login-logo{
+  width:56px;height:56px;border-radius:14px;margin:0 auto 16px;
+  background:linear-gradient(135deg,var(--blue),var(--blue3));
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;font-weight:900;color:#fff;font-family:var(--font-h);
+  box-shadow:0 0 24px var(--blue-glow);
+}
+.login-title{font-family:var(--font-h);font-size:26px;font-weight:800;text-align:center;letter-spacing:-.5px;margin-bottom:4px}
+.login-title .dot{color:var(--wood2)}
+.login-sub{font-size:13px;color:var(--text3);text-align:center;margin-bottom:28px}
+.login-field{margin-bottom:14px}
+.login-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;display:block}
+.login-input{
+  width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;
+  padding:12px 14px;font-size:14px;color:var(--text);font-family:var(--font-b);outline:none;
+  transition:all .15s;
+}
+.login-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim)}
+.login-btn{
+  width:100%;padding:13px;border-radius:10px;border:none;
+  background:linear-gradient(135deg,var(--blue),var(--blue2));
+  color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+  font-family:var(--font-b);margin-top:8px;transition:all .15s;letter-spacing:.03em;
+  box-shadow:0 4px 20px var(--blue-dim);
+}
+.login-btn:hover{box-shadow:0 6px 28px var(--blue-glow)}
+.login-btn:active{transform:scale(.98)}
+.login-error{background:var(--danger-dim);border:1px solid var(--danger);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--danger);margin-top:12px;display:none;font-weight:600}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { font-size: 15px; }
-  body { background: var(--bg); color: var(--text); font-family: var(--font-b); min-height: 100vh; }
+/* TOPBAR */
+.topbar{
+  background:var(--bg2);border-bottom:1px solid var(--border);height:62px;padding:0 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.4);
+}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--blue3));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff;font-family:var(--font-h);box-shadow:0 0 14px var(--blue-glow)}
+.brand-name{font-family:var(--font-h);font-size:21px;font-weight:800;letter-spacing:-.5px}
+.brand-name .dot{color:var(--wood2)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.user-chip{
+  display:flex;align-items:center;gap:8px;background:var(--bg3);
+  border:1px solid var(--border);border-radius:20px;padding:5px 12px 5px 8px;cursor:pointer;
+  transition:border-color .15s;
+}
+.user-chip:hover{border-color:var(--blue)}
+.user-avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--wood));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;font-family:var(--font-h)}
+.user-name{font-size:12px;font-weight:600;color:var(--text2)}
+.user-role{font-size:10px;color:var(--text3);margin-top:1px}
+.logout-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:11px;color:var(--text3);cursor:pointer;font-weight:600;transition:all .15s}
+.logout-btn:hover{border-color:var(--danger);color:var(--danger)}
 
-  /* ── LAYOUT ── */
-  .app { display: flex; flex-direction: column; min-height: 100vh; }
+/* NAV */
+.nav{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;padding:0 10px;gap:2px}
+.nav::-webkit-scrollbar{display:none}
+.nav-tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 18px 8px;font-size:11px;font-weight:700;color:var(--text3);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;font-family:var(--font-b);transition:all .15s;text-transform:uppercase;letter-spacing:.07em}
+.nav-tab .nav-icon{font-size:22px;line-height:1;filter:grayscale(1) opacity(.45);transition:filter .15s,transform .15s}
+.nav-tab.active .nav-icon{filter:none;transform:scale(1.15)}
+.nav-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.nav-tab:hover:not(.active){color:var(--text2)}
+.nav-tab:hover:not(.active) .nav-icon{filter:grayscale(.5) opacity(.8);transform:scale(1.05)}
+.nav-tab.tab-serv.active{color:var(--wood2);border-bottom-color:var(--wood2)}
+.nav-tab.tab-admin.active{color:var(--warn);border-bottom-color:var(--warn)}
 
-  /* ── TOPBAR ── */
-  .topbar {
-    background: var(--bg2);
-    border-bottom: 1px solid var(--border);
-    padding: 0 20px;
-    height: 60px;
-    display: flex; align-items: center; justify-content: space-between;
-    position: sticky; top: 0; z-index: 100;
-  }
-  .topbar-brand { display: flex; align-items: center; gap: 10px; }
-  .brand-dot { width: 28px; height: 28px; background: var(--accent); border-radius: 8px;
-    display: flex; align-items: center; justify-content: center; font-size: 14px; }
-  .brand-name { font-family: var(--font-h); font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
-  .brand-name span { color: var(--accent); }
-  .topbar-date { font-size: 12px; color: var(--text3); }
+/* MAIN */
+.main{padding:20px;max-width:1200px;margin:0 auto}
+.panel{display:none}.panel.active{display:block}
 
-  /* ── NAV TABS ── */
-  .nav {
-    background: var(--bg2);
-    border-bottom: 1px solid var(--border);
-    padding: 0 20px;
-    display: flex; gap: 4px;
-    overflow-x: auto; scrollbar-width: none;
-  }
-  .nav::-webkit-scrollbar { display: none; }
-  .nav-tab {
-    padding: 12px 16px; font-size: 13px; font-weight: 500;
-    color: var(--text3); border: none; background: none; cursor: pointer;
-    border-bottom: 2px solid transparent; white-space: nowrap;
-    transition: color .15s, border-color .15s;
-  }
-  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .nav-tab:hover:not(.active) { color: var(--text2); }
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px 16px;position:relative;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.kpi:hover{border-color:var(--blue);box-shadow:0 0 20px var(--blue-dim)}
+.kpi-icon{font-size:28px;margin-bottom:8px;display:block}
+.kpi-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.kpi-value{font-family:var(--font-h);font-size:25px;font-weight:800;line-height:1}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:5px}
+.kpi-blue .kpi-value{color:var(--blue)}.kpi-wood .kpi-value{color:var(--wood2)}
+.kpi-green .kpi-value{color:var(--green)}.kpi-warn .kpi-value{color:var(--warn)}
+.kpi-danger .kpi-value{color:var(--danger)}
+.kpi-stripe{height:3px;position:absolute;top:0;left:0;right:0}
+.kpi-blue .kpi-stripe{background:linear-gradient(90deg,var(--blue),var(--blue3))}
+.kpi-wood .kpi-stripe{background:linear-gradient(90deg,var(--wood),var(--wood2))}
+.kpi-green .kpi-stripe{background:var(--green)}.kpi-warn .kpi-stripe{background:var(--warn)}
+.kpi-danger .kpi-stripe{background:var(--danger)}
 
-  /* ── MAIN ── */
-  .main { flex: 1; padding: 20px; max-width: 1100px; margin: 0 auto; width: 100%; }
+/* MAG TOTALS BOX */
+.mag-totals{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;
+  background:var(--bg2);border:1px solid var(--blue);border-radius:var(--r);
+  padding:18px;margin-bottom:20px;
+  box-shadow:0 0 24px var(--blue-dim);
+}
+.mag-total-item{text-align:center}
+.mag-total-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.mag-total-val{font-family:var(--font-h);font-size:22px;font-weight:800}
+.mag-total-val.blue{color:var(--blue)}.mag-total-val.green{color:var(--green)}
+.mag-total-val.warn{color:var(--warn)}.mag-total-val.danger{color:var(--danger)}
+.mag-total-sub{font-size:11px;color:var(--text3);margin-top:2px}
 
-  /* ── PANELS ── */
-  .panel { display: none; }
-  .panel.active { display: block; }
+/* SECTION */
+.sec{margin-bottom:24px}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.sec-title{font-family:var(--font-h);font-size:17px;font-weight:800;letter-spacing:-.3px}
+.sec-sub{font-size:12px;color:var(--text3);margin-top:2px}
 
-  /* ── KPI ROW ── */
-  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
-  .kpi {
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: var(--card-r); padding: 16px;
-    display: flex; flex-direction: column; gap: 4px;
-  }
-  .kpi-label { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; }
-  .kpi-value { font-family: var(--font-h); font-size: 24px; font-weight: 700; }
-  .kpi-sub { font-size: 11px; color: var(--text3); }
-  .kpi-green .kpi-value { color: var(--accent); }
-  .kpi-blue .kpi-value { color: var(--accent2); }
-  .kpi-warn .kpi-value { color: var(--warn); }
-  .kpi-danger .kpi-value { color: var(--danger); }
+/* TABLE */
+.tbl-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:16px}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--bg3)}
+th{padding:11px 14px;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;text-align:left;white-space:nowrap}
+td{padding:12px 14px;font-size:13px;border-top:1px solid var(--border)}
+tr:hover td{background:rgba(79,142,247,.04)}
+.td-bold{font-weight:700;color:var(--white)}.td-mono{font-family:var(--font-h);font-size:14px}
+.td-r{text-align:right}.td-c{text-align:center}
 
-  /* ── SECTION HEADER ── */
-  .sec-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
-  .sec-title { font-family: var(--font-h); font-size: 16px; font-weight: 600; }
-  .sec-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.04em}
+.badge-ok{background:var(--green-dim);color:var(--green)}
+.badge-warn{background:var(--warn-dim);color:var(--warn)}
+.badge-danger{background:var(--danger-dim);color:var(--danger)}
+.badge-blue{background:var(--blue-dim);color:var(--blue)}
+.badge-wood{background:var(--wood-dim);color:var(--wood2)}
+.badge-admin{background:rgba(240,160,53,.2);color:var(--warn)}
+.fc{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.fc-ok{background:var(--green-dim);color:var(--green)}.fc-warn{background:var(--warn-dim);color:var(--warn)}.fc-bad{background:var(--danger-dim);color:var(--danger)}
 
-  /* ── SEARCH / FILTER ── */
-  .search-bar {
-    background: var(--bg3); border: 1px solid var(--border);
-    border-radius: 8px; padding: 8px 14px;
-    font-size: 13px; color: var(--text); width: 220px;
-    outline: none; font-family: var(--font-b);
-  }
-  .search-bar::placeholder { color: var(--text3); }
-  .search-bar:focus { border-color: var(--accent2); }
+/* BUTTONS */
+.btn{padding:9px 18px;border-radius:9px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-b);transition:all .12s;letter-spacing:.03em}
+.btn:active{transform:scale(.96)}
+.btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;box-shadow:0 2px 12px var(--blue-dim)}
+.btn-primary:hover{box-shadow:0 4px 20px var(--blue-glow)}
+.btn-wood{background:linear-gradient(135deg,var(--wood),var(--wood2));color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-ghost{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--bg4);border-color:var(--blue)}
+.btn-sm{padding:6px 13px;font-size:12px}
 
-  /* ── BTN ── */
-  .btn {
-    padding: 8px 16px; border-radius: 8px; border: none;
-    font-size: 13px; font-weight: 500; cursor: pointer;
-    font-family: var(--font-b); transition: opacity .15s, transform .1s;
-  }
-  .btn:active { transform: scale(.97); }
-  .btn-primary { background: var(--accent); color: #0f1923; }
-  .btn-secondary { background: var(--bg4); color: var(--text); border: 1px solid var(--border); }
-  .btn-danger { background: var(--danger); color: white; }
-  .btn-sm { padding: 5px 12px; font-size: 12px; }
+/* SEARCH */
+.search{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:8px 13px;font-size:13px;color:var(--text);font-family:var(--font-b);outline:none;transition:all .15s}
+.search:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim)}
+.search::placeholder{color:var(--text3)}
 
-  /* ── TABLE ── */
-  .table-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--card-r); overflow: hidden; margin-bottom: 20px; }
-  table { width: 100%; border-collapse: collapse; }
-  thead tr { background: var(--bg3); }
-  th { padding: 11px 14px; text-align: left; font-size: 11px; font-weight: 600;
-    color: var(--text3); text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
-  td { padding: 11px 14px; font-size: 13px; border-top: 1px solid var(--border); }
-  tr:hover td { background: rgba(255,255,255,.02); }
-  .td-bold { font-weight: 600; }
-  .td-mono { font-family: var(--font-h); font-size: 13px; }
-  .td-right { text-align: right; }
-  .td-center { text-align: center; }
+/* DASH GRID */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+@media(max-width:700px){.dash-grid{grid-template-columns:1fr}}
 
-  /* ── STATUS BADGES ── */
-  .badge { display: inline-flex; align-items: center; gap: 5px;
-    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
-  .badge-ok      { background: rgba(0,200,150,.15); color: var(--accent); }
-  .badge-warn    { background: rgba(245,166,35,.15); color: var(--warn); }
-  .badge-danger  { background: rgba(232,69,90,.15);  color: var(--danger); }
-  .badge-blue    { background: rgba(0,153,255,.15);  color: var(--accent2); }
+/* BAR CHART */
+.bar-chart{display:flex;flex-direction:column;gap:10px;padding:16px}
+.bar-item{display:flex;align-items:center;gap:10px}
+.bar-name{font-size:12px;color:var(--text2);width:155px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;background:var(--bg4);border-radius:4px;height:8px}
+.bar-fill{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--blue),var(--blue2))}
+.bar-val{font-size:12px;color:var(--text2);width:64px;text-align:right;flex-shrink:0;font-family:var(--font-h)}
 
-  /* ── FOOD COST PILL ── */
-  .fc-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
-  .fc-ok   { background: rgba(0,200,150,.15); color: var(--accent); }
-  .fc-warn { background: rgba(245,166,35,.15); color: var(--warn); }
-  .fc-bad  { background: rgba(232,69,90,.15);  color: var(--danger); }
+/* ALERT CARD */
+.alert-card{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--danger);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.alert-card.warn{border-left-color:var(--warn)}
+.alert-name{font-weight:700;font-size:14px;color:var(--white)}
+.alert-detail{font-size:12px;color:var(--text3);margin-top:3px}
+.alert-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
 
-  /* ── MODAL ── */
-  .modal-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,.7); z-index: 200;
-    align-items: center; justify-content: center;
-    padding: 20px;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 16px; padding: 24px; width: 100%; max-width: 480px;
-    max-height: 90vh; overflow-y: auto;
-  }
-  .modal-title { font-family: var(--font-h); font-size: 17px; font-weight: 700; margin-bottom: 18px; }
-  .form-group { margin-bottom: 14px; }
-  .form-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; display: block; }
-  .form-input, .form-select {
-    width: 100%; background: var(--bg3); border: 1px solid var(--border);
-    border-radius: 8px; padding: 9px 12px; font-size: 13px;
-    color: var(--text); font-family: var(--font-b); outline: none;
-    transition: border-color .15s;
-  }
-  .form-input:focus, .form-select:focus { border-color: var(--accent2); }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:26px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.modal-title{font-family:var(--font-h);font-size:19px;font-weight:800;margin-bottom:20px;color:var(--white);letter-spacing:-.3px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.06em}
+.form-input,.form-select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:10px 13px;font-size:13px;color:var(--text);font-family:var(--font-b);outline:none;transition:all .15s}
+.form-input:focus,.form-select:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-actions{display:flex;gap:10px;margin-top:22px;justify-content:flex-end}
 
-  /* ── ALERT CARD ── */
-  .alert-card {
-    background: var(--bg2); border-left: 3px solid var(--danger);
-    border-radius: var(--card-r); padding: 14px 16px;
-    margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  }
-  .alert-card.warn { border-left-color: var(--warn); }
-  .alert-name { font-weight: 600; font-size: 14px; }
-  .alert-detail { font-size: 12px; color: var(--text3); margin-top: 2px; }
-  .alert-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+/* ADMIN PANEL */
+.user-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.user-card-left{display:flex;align-items:center;gap:12px}
+.user-avatar-lg{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--wood));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;font-family:var(--font-h);flex-shrink:0}
+.user-card-name{font-weight:700;font-size:14px;color:var(--white)}
+.user-card-info{font-size:12px;color:var(--text3);margin-top:2px}
+.user-card-right{display:flex;gap:8px;flex-shrink:0}
 
-  /* ── CHART BAR ── */
-  .bar-chart { display: flex; flex-direction: column; gap: 10px; }
-  .bar-row-c { display: flex; align-items: center; gap: 12px; }
-  .bar-label-c { font-size: 12px; color: var(--text2); width: 170px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .bar-track { flex: 1; background: var(--bg4); border-radius: 4px; height: 8px; }
-  .bar-fill-c { height: 8px; border-radius: 4px; background: var(--accent); transition: width .4s; }
-  .bar-val-c { font-size: 12px; color: var(--text2); width: 60px; text-align: right; flex-shrink: 0; }
+/* SERVIZIO */
+.serv-header{margin-bottom:18px}
+.serv-title-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:12px}
+.serv-title{font-family:var(--font-h);font-size:22px;font-weight:800;color:var(--wood2);letter-spacing:-.5px}
+.serv-sub{font-size:13px;color:var(--text3);margin-top:3px}
+.cat-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.cat-scroll::-webkit-scrollbar{display:none}
+.cat-chip{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text3);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.cat-chip.active{background:var(--wood);color:#fff;border-color:var(--wood);box-shadow:0 2px 12px var(--wood-dim)}
+.serv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.serv-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all .15s}
+.serv-card:hover{border-color:var(--blue);box-shadow:0 0 20px var(--blue-dim)}
+.serv-card:active{transform:scale(.97)}
+.serv-card.status-warn{border-color:var(--warn);box-shadow:0 0 12px var(--warn-dim)}
+.serv-card.status-danger{border-color:var(--danger);box-shadow:0 0 12px var(--danger-dim)}
+.serv-card-icon{font-size:32px;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
+.serv-card-name{font-size:13px;font-weight:700;text-align:center;line-height:1.3;font-family:var(--font-h);color:var(--white)}
+.serv-card-unit{font-size:11px;color:var(--text3);font-weight:600}
+.serv-qty-row{display:flex;align-items:center;gap:4px;width:100%;justify-content:center;margin-top:4px}
+.serv-btn{width:38px;height:38px;border-radius:10px;border:none;font-size:22px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;flex-shrink:0;font-family:var(--font-h)}
+.serv-btn:active{transform:scale(.86)}
+.serv-btn-minus{background:var(--danger-dim);color:var(--danger);border:1px solid rgba(240,90,90,.2)}
+.serv-btn-minus:hover{background:rgba(240,90,90,.25)}
+.serv-btn-plus{background:var(--green-dim);color:var(--green);border:1px solid rgba(52,211,153,.2)}
+.serv-btn-plus:hover{background:rgba(52,211,153,.25)}
+.serv-qty-val{min-width:52px;text-align:center;font-family:var(--font-h);font-size:19px;font-weight:800;color:var(--white)}
+.serv-qty-val.qty-changed{color:var(--warn)}
+.serv-step{font-size:11px;color:var(--text3);text-align:center;display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
+.step-opt{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:11px;font-weight:600;transition:all .1s;color:var(--text2)}
+.step-opt.active-step{background:var(--blue);color:#fff;border-color:var(--blue)}
+.serv-status-bar{height:3px;width:100%;border-radius:2px;background:var(--bg4)}
+.serv-save-btn{width:100%;padding:8px;border-radius:9px;border:1px solid var(--border);background:var(--bg3);color:var(--blue);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-b);transition:all .15s;letter-spacing:.04em}
+.serv-save-btn:hover{background:var(--blue-dim);border-color:var(--blue)}
+.serv-save-btn.saved{background:var(--green-dim);color:var(--green);border-color:var(--green)}
+.serv-log{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px}
+.serv-log-title{font-family:var(--font-h);font-size:15px;font-weight:800;margin-bottom:12px;color:var(--white)}
+.log-entry{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.log-entry:last-child{border-bottom:none}
+.log-nome{font-weight:600;color:var(--white)}.log-delta{font-weight:800;font-family:var(--font-h)}
+.log-delta.neg{color:var(--danger)}.log-delta.pos{color:var(--green)}
+.log-time{font-size:11px;color:var(--text3)}
 
-  /* ── EMPTY STATE ── */
-  .empty { text-align: center; padding: 48px 20px; color: var(--text3); }
-  .empty-icon { font-size: 40px; margin-bottom: 12px; }
-  .empty p { font-size: 14px; }
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;z-index:300;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:13px 18px;font-size:13px;font-weight:600;transform:translateY(80px);opacity:0;transition:transform .25s,opacity .25s;max-width:300px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-left:3px solid var(--blue)}.toast.error{border-left:3px solid var(--danger)}
 
-  /* ── TOAST ── */
-  .toast {
-    position: fixed; bottom: 24px; right: 24px; z-index: 300;
-    background: var(--bg3); border: 1px solid var(--border);
-    border-radius: 10px; padding: 12px 18px;
-    font-size: 13px; font-weight: 500;
-    transform: translateY(80px); opacity: 0;
-    transition: transform .25s, opacity .25s;
-    max-width: 300px;
-  }
-  .toast.show { transform: translateY(0); opacity: 1; }
-  .toast.success { border-left: 3px solid var(--accent); }
-  .toast.error   { border-left: 3px solid var(--danger); }
+.empty{text-align:center;padding:48px 20px;color:var(--text3)}
+.empty-icon{font-size:44px;margin-bottom:12px}
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0}
 
-  /* ── RESPONSIVE ── */
-  @media (max-width: 600px) {
-    .main { padding: 14px; }
-    .kpi-row { grid-template-columns: 1fr 1fr; }
-    .hide-mobile { display: none; }
-    th, td { padding: 9px 10px; }
-    .bar-label-c { width: 110px; }
-  }
+@media(max-width:600px){
+  .main{padding:12px}.kpi-row{grid-template-columns:1fr 1fr}
+  .hide-m{display:none}.nav-tab{padding:8px 12px 6px;font-size:10px}
+  .nav-tab .nav-icon{font-size:20px}.mag-totals{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
-<div class="app">
 
-  <!-- TOPBAR -->
-  <div class="topbar">
-    <div class="topbar-brand">
-      <div class="brand-dot">🍽</div>
-      <div class="brand-name">Risto<span>Gest</span></div>
+<!-- ═══ LOGIN SCREEN ═══ -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">O</div>
+    <div class="login-title">Over<span class="dot">sy</span></div>
+    <div class="login-sub">Gestionale Ristorante — accedi con le tue credenziali</div>
+    <div class="login-field">
+      <label class="login-label">Username</label>
+      <input class="login-input" id="login-user" placeholder="es. mario.rossi" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-    <div class="topbar-date" id="topbar-date"></div>
+    <div class="login-field">
+      <label class="login-label">Password</label>
+      <input class="login-input" type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Accedi</button>
+    <div class="login-error" id="login-error">Username o password non corretti</div>
+  </div>
+</div>
+
+<!-- ═══ APP SHELL ═══ -->
+<div id="app-shell" style="display:none">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-logo">O</div>
+      <div class="brand-name">Over<span class="dot">sy</span></div>
+    </div>
+    <div class="topbar-right">
+      <div class="user-chip">
+        <div class="user-avatar" id="top-avatar">?</div>
+        <div>
+          <div class="user-name" id="top-username">—</div>
+          <div class="user-role" id="top-role">—</div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">Esci</button>
+    </div>
   </div>
 
-  <!-- NAV -->
-  <nav class="nav">
-    <button class="nav-tab active" onclick="showPanel('dashboard')">📊 Dashboard</button>
-    <button class="nav-tab" onclick="showPanel('magazzino')">📦 Magazzino</button>
-    <button class="nav-tab" onclick="showPanel('ricette')">🍳 Ricette</button>
-    <button class="nav-tab" onclick="showPanel('vendite')">💰 Vendite</button>
-    <button class="nav-tab" onclick="showPanel('alert')">🔔 Alert</button>
-    <button class="nav-tab nav-tab-servizio" onclick="showPanel('servizio')" style="color:#f5a623;font-weight:700;border-bottom:2px solid transparent">⚡ SERVIZIO</button>
+  <nav class="nav" id="main-nav">
+    <button class="nav-tab active" onclick="showPanel('dashboard',this)">
+      <span class="nav-icon">📊</span>Dashboard
+    </button>
+    <button class="nav-tab" onclick="showPanel('magazzino',this)">
+      <span class="nav-icon">📦</span>Magazzino
+    </button>
+    <button class="nav-tab" onclick="showPanel('ricette',this)">
+      <span class="nav-icon">🍳</span>Ricette
+    </button>
+    <button class="nav-tab" onclick="showPanel('vendite',this)">
+      <span class="nav-icon">💰</span>Vendite
+    </button>
+    <button class="nav-tab" onclick="showPanel('alert',this)">
+      <span class="nav-icon">🔔</span>Alert
+    </button>
+    <button class="nav-tab tab-serv" onclick="showPanel('servizio',this)">
+      <span class="nav-icon">⚡</span>Servizio
+    </button>
+    <button class="nav-tab tab-admin" id="nav-admin" style="display:none" onclick="showPanel('admin',this)">
+      <span class="nav-icon">👑</span>Admin
+    </button>
   </nav>
 
   <main class="main">
 
-    <!-- ═══════════════════ DASHBOARD ═══════════════════ -->
+    <!-- DASHBOARD -->
     <div id="panel-dashboard" class="panel active">
       <div class="kpi-row" id="kpi-row"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;flex-wrap:wrap;" id="dash-grid">
-        <div>
-          <div class="sec-header"><div><div class="sec-title">Top Piatti per Incasso</div><div class="sec-sub">Periodo corrente</div></div></div>
-          <div class="table-wrap"><div class="bar-chart" id="top-piatti-chart" style="padding:16px"></div></div>
+      <div class="dash-grid">
+        <div class="sec">
+          <div class="sec-head"><div><div class="sec-title">Top Incasso</div><div class="sec-sub">Piatti del periodo</div></div></div>
+          <div class="tbl-wrap"><div class="bar-chart" id="top-chart"></div></div>
         </div>
-        <div>
-          <div class="sec-header"><div><div class="sec-title">Food Cost per Piatto</div><div class="sec-sub">Verde &lt;33% · Giallo &lt;40% · Rosso &gt;40%</div></div></div>
-          <div class="table-wrap"><div id="fc-chart" style="padding:16px"></div></div>
+        <div class="sec">
+          <div class="sec-head"><div><div class="sec-title">Food Cost %</div><div class="sec-sub">Verde &lt;33% · Giallo &lt;40% · Rosso &gt;40%</div></div></div>
+          <div class="tbl-wrap"><div class="bar-chart" id="fc-chart"></div></div>
         </div>
       </div>
-      <div>
-        <div class="sec-header"><div><div class="sec-title">Scorte Critiche</div><div class="sec-sub">Prodotti da ordinare subito</div></div></div>
+      <div class="sec">
+        <div class="sec-head"><div><div class="sec-title">🔴 Scorte Critiche</div></div></div>
         <div id="dash-alerts"></div>
       </div>
     </div>
 
-    <!-- ═══════════════════ MAGAZZINO ═══════════════════ -->
+    <!-- MAGAZZINO -->
     <div id="panel-magazzino" class="panel">
-      <div class="sec-header">
-        <div><div class="sec-title">📦 Magazzino Ingredienti</div><div class="sec-sub">Aggiorna le scorte dopo ogni turno</div></div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <input class="search-bar" type="text" placeholder="Cerca ingrediente..." oninput="filterTable('mag-tbody',this.value,1)" style="width:180px">
-          <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-ing')">+ Ingrediente</button>
+      <div class="sec-head">
+        <div><div class="sec-title">📦 Magazzino</div><div class="sec-sub">Panoramica scorte e valori</div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input class="search" type="text" placeholder="🔍 Cerca..." oninput="filterTable('mag-tbody',this.value,1)" style="width:160px">
+          <button class="btn btn-primary btn-sm" id="btn-add-ing" onclick="openModal('modal-add-ing')">+ Ingrediente</button>
         </div>
       </div>
-      <div class="table-wrap">
+      <!-- TOTALI MAGAZZINO -->
+      <div class="mag-totals" id="mag-totals"></div>
+      <div class="tbl-wrap">
         <table>
           <thead><tr>
             <th>Ingrediente</th><th>Categoria</th>
-            <th class="td-right">Scorta</th><th>Unità</th>
-            <th class="td-right">Minima</th><th class="td-right">Prezzo/Unit</th>
-            <th class="td-right">Valore €</th><th>Fornitore</th>
-            <th>Stato</th><th class="td-center">Azioni</th>
+            <th class="td-r">Scorta</th><th>Un.</th>
+            <th class="td-r">Min.</th><th class="td-r">€/Un.</th>
+            <th class="td-r">Valore €</th>
+            <th class="hide-m">Fornitore</th>
+            <th>Stato</th><th class="td-c">Edit</th>
           </tr></thead>
           <tbody id="mag-tbody"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- ═══════════════════ RICETTE ═══════════════════ -->
+    <!-- RICETTE -->
     <div id="panel-ricette" class="panel">
-      <div class="sec-header">
-        <div><div class="sec-title">🍳 Ricette & Food Cost</div><div class="sec-sub">Grammature standard per ogni piatto e bevanda</div></div>
+      <div class="sec-head">
+        <div><div class="sec-title">🍳 Ricette & Food Cost</div><div class="sec-sub">Grammature standard</div></div>
         <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-ricetta')">+ Ricetta</button>
       </div>
-      <div class="table-wrap">
+      <div class="tbl-wrap">
         <table>
           <thead><tr>
-            <th>Piatto / Bevanda</th><th>Tipo</th>
-            <th>Ingredienti principali</th>
-            <th class="td-right">Costo (€)</th>
-            <th class="td-right">Prezzo vendita (€)</th>
-            <th class="td-center">Food Cost %</th>
-            <th class="td-right">Margine (€)</th>
+            <th>Piatto</th><th>Tipo</th><th class="hide-m">Ingredienti</th>
+            <th class="td-r">Costo</th><th class="td-r">Prezzo</th>
+            <th class="td-c">Food Cost</th><th class="td-r">Margine</th>
           </tr></thead>
           <tbody id="ric-tbody"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- ═══════════════════ VENDITE ═══════════════════ -->
+    <!-- VENDITE -->
     <div id="panel-vendite" class="panel">
-      <div class="sec-header">
-        <div><div class="sec-title">💰 Vendite Giornaliere</div><div class="sec-sub">Registra le vendite per aggiornare il magazzino</div></div>
+      <div class="sec-head">
+        <div><div class="sec-title">💰 Vendite</div><div class="sec-sub">Registro giornaliero</div></div>
         <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-vendita')">+ Vendita</button>
       </div>
       <div class="kpi-row" id="vendite-kpi"></div>
-      <div class="table-wrap">
+      <div class="tbl-wrap">
         <table>
           <thead><tr>
-            <th>Data</th><th>Piatto / Bevanda</th><th>Tipo</th>
-            <th class="td-right">Qty</th>
-            <th class="td-right">Prezzo (€)</th>
-            <th class="td-right">Incasso (€)</th>
-            <th class="td-right">Costo (€)</th>
-            <th class="td-right">Margine (€)</th>
+            <th>Data</th><th>Piatto</th><th>Tipo</th>
+            <th class="td-r">Qty</th><th class="td-r">Prezzo</th>
+            <th class="td-r">Incasso</th><th class="td-r">Costo</th><th class="td-r">Margine</th>
           </tr></thead>
           <tbody id="vend-tbody"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- ═══════════════════ ALERT ═══════════════════ -->
+    <!-- ALERT -->
     <div id="panel-alert" class="panel">
-      <div class="sec-header"><div><div class="sec-title">🔔 Alert Scorte & Ordini</div><div class="sec-sub">Chiama il fornitore per i prodotti in rosso</div></div></div>
+      <div class="sec-head"><div><div class="sec-title">🔔 Alert & Ordini</div><div class="sec-sub">Contatta il fornitore per i prodotti in rosso</div></div></div>
       <div id="alert-list"></div>
     </div>
 
-    <!-- ═══════════════════ SERVIZIO ═══════════════════ -->
+    <!-- SERVIZIO -->
     <div id="panel-servizio" class="panel">
       <div class="serv-header">
         <div class="serv-title-row">
-          <div>
-            <div class="serv-title">⚡ Modalità Servizio</div>
-            <div class="serv-sub">Tocca un prodotto per aggiornare la scorta in tempo reale</div>
-          </div>
-          <div class="serv-log-btn" onclick="toggleLog()">📋 Registro turno</div>
+          <div><div class="serv-title">⚡ Servizio</div><div class="serv-sub">Seleziona categoria · aggiorna scorte in tempo reale</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="toggleLog()">📋 Registro</button>
         </div>
-        <!-- Filtro categorie -->
         <div class="cat-scroll" id="cat-filters"></div>
       </div>
-      <!-- Log turno — visibile subito all'apertura -->
       <div class="serv-log" id="serv-log">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
           <div class="serv-log-title" style="margin-bottom:0">📋 Registro turno</div>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-secondary btn-sm" onclick="clearLog()">🗑 Cancella</button>
-            <button class="btn btn-secondary btn-sm" onclick="toggleLog()">✕ Chiudi</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearLog()">🗑</button>
+            <button class="btn btn-ghost btn-sm" onclick="toggleLog()">✕</button>
           </div>
         </div>
         <div id="serv-log-list"></div>
       </div>
-
-      <!-- Griglia prodotti -->
       <div class="serv-grid" id="serv-grid"></div>
+    </div>
+
+    <!-- ADMIN -->
+    <div id="panel-admin" class="panel">
+      <div class="sec-head">
+        <div><div class="sec-title">👑 Gestione Utenti</div><div class="sec-sub">Solo l'admin può vedere questa sezione</div></div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-user')">+ Nuovo Utente</button>
+      </div>
+      <div id="users-list"></div>
     </div>
 
   </main>
 </div>
 
-<style>
-/* ── SERVIZIO ── */
-.serv-header { margin-bottom: 18px; }
-.serv-title-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; gap: 12px; }
-.serv-title { font-family: var(--font-h); font-size: 20px; font-weight: 700; color: var(--warn); }
-.serv-sub { font-size: 13px; color: var(--text3); margin-top: 3px; }
-.serv-log-btn { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
-  padding: 8px 14px; font-size: 13px; cursor: pointer; white-space: nowrap;
-  color: var(--text2); transition: background .15s; flex-shrink: 0; }
-.serv-log-btn:hover { background: var(--bg4); }
-
-/* Categoria chips */
-.cat-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
-.cat-scroll::-webkit-scrollbar { display: none; }
-.cat-chip {
-  padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 500;
-  background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
-  cursor: pointer; white-space: nowrap; transition: all .15s; flex-shrink: 0;
-}
-.cat-chip.active { background: var(--warn); color: #0f1923; border-color: var(--warn); }
-
-/* Griglia prodotti */
-.serv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
-
-.serv-card {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 14px; padding: 14px 12px;
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  transition: border-color .15s, transform .1s;
-  position: relative; overflow: hidden;
-}
-.serv-card:active { transform: scale(.97); }
-.serv-card.status-warn { border-color: var(--warn); }
-.serv-card.status-danger { border-color: var(--danger); }
-.serv-card.status-ok { border-color: var(--border); }
-
-.serv-card-icon { font-size: 26px; line-height: 1; }
-.serv-card-name { font-size: 13px; font-weight: 600; text-align: center; line-height: 1.3; }
-.serv-card-unit { font-size: 11px; color: var(--text3); }
-
-/* Quantità con controlli */
-.serv-qty-row { display: flex; align-items: center; gap: 0; width: 100%; justify-content: center; margin-top: 2px; }
-.serv-btn {
-  width: 34px; height: 34px; border-radius: 8px; border: none;
-  font-size: 18px; font-weight: 700; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background .1s, transform .08s; flex-shrink: 0;
-}
-.serv-btn:active { transform: scale(.9); }
-.serv-btn-minus { background: rgba(232,69,90,.2); color: var(--danger); }
-.serv-btn-minus:hover { background: rgba(232,69,90,.35); }
-.serv-btn-plus  { background: rgba(0,200,150,.15); color: var(--accent); }
-.serv-btn-plus:hover  { background: rgba(0,200,150,.3); }
-.serv-qty-val {
-  min-width: 52px; text-align: center;
-  font-family: var(--font-h); font-size: 17px; font-weight: 700;
-  padding: 0 4px;
-}
-.serv-qty-val.qty-changed { color: var(--warn); }
-
-/* Step selector */
-.serv-step {
-  font-size: 11px; color: var(--text3); text-align: center;
-  display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;
-}
-.step-opt {
-  background: var(--bg3); border: 1px solid var(--border);
-  border-radius: 6px; padding: 2px 7px; cursor: pointer; font-size: 11px;
-  transition: all .1s; color: var(--text2);
-}
-.step-opt.active-step { background: var(--accent2); color: white; border-color: var(--accent2); }
-
-/* Stato scorta */
-.serv-status-bar { height: 3px; width: 100%; border-radius: 2px; margin-top: 2px; }
-
-/* Salva btn */
-.serv-save-btn {
-  width: 100%; padding: 6px; border-radius: 8px; border: none;
-  background: rgba(0,200,150,.15); color: var(--accent); font-size: 12px;
-  font-weight: 600; cursor: pointer; font-family: var(--font-b);
-  transition: background .15s;
-}
-.serv-save-btn:hover { background: rgba(0,200,150,.3); }
-.serv-save-btn.saved { background: rgba(0,200,150,.35); }
-
-/* Log turno */
-.serv-log { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--card-r); padding: 16px; margin-top: 16px; }
-.serv-log-title { font-family: var(--font-h); font-size: 14px; font-weight: 600; margin-bottom: 12px; }
-.log-entry { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-.log-entry:last-child { border-bottom: none; }
-.log-nome { font-weight: 500; }
-.log-delta { font-weight: 700; }
-.log-delta.neg { color: var(--danger); }
-.log-delta.pos { color: var(--accent); }
-.log-time { font-size: 11px; color: var(--text3); }
-
-@media (max-width: 480px) {
-  .serv-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 9px; }
-}
-</style>
-
-<!-- ══════════ MODALS ══════════ -->
-<div class="modal-overlay" id="modal-add-ing">
+<!-- MODALS -->
+<div class="overlay" id="modal-add-ing">
   <div class="modal">
     <div class="modal-title">+ Nuovo Ingrediente</div>
     <div class="form-row">
@@ -483,75 +476,69 @@
     </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Unità *</label>
-        <select class="form-select" id="ing-unit">
-          <option>kg</option><option>lt</option><option>bt</option><option>pz</option><option>gr</option>
-        </select>
+        <select class="form-select" id="ing-unit"><option>kg</option><option>lt</option><option>bt</option><option>pz</option><option>gr</option></select>
       </div>
-      <div class="form-group"><label class="form-label">Scorta attuale *</label><input class="form-input" id="ing-att" type="number" step="0.01" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Scorta attuale</label><input class="form-input" id="ing-att" type="number" step="0.01" placeholder="0"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Scorta minima *</label><input class="form-input" id="ing-min" type="number" step="0.01" placeholder="0"></div>
-      <div class="form-group"><label class="form-label">Scorta massima</label><input class="form-input" id="ing-max" type="number" step="0.01" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Scorta minima</label><input class="form-input" id="ing-min" type="number" step="0.01"></div>
+      <div class="form-group"><label class="form-label">Scorta massima</label><input class="form-input" id="ing-max" type="number" step="0.01"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Prezzo unitario (€) *</label><input class="form-input" id="ing-prezzo" type="number" step="0.01" placeholder="0.00"></div>
+      <div class="form-group"><label class="form-label">Prezzo unitario (€)</label><input class="form-input" id="ing-prezzo" type="number" step="0.01"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Fornitore</label><input class="form-input" id="ing-forn" placeholder="Nome fornitore"></div>
-      <div class="form-group"><label class="form-label">Telefono fornitore</label><input class="form-input" id="ing-tel" placeholder="+34 928 ..."></div>
+      <div class="form-group"><label class="form-label">Telefono</label><input class="form-input" id="ing-tel" placeholder="+34 928..."></div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('modal-add-ing')">Annulla</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-ing')">Annulla</button>
       <button class="btn btn-primary" onclick="addIngrediente()">Salva</button>
     </div>
   </div>
 </div>
 
-<div class="modal-overlay" id="modal-add-ricetta">
+<div class="overlay" id="modal-add-ricetta">
   <div class="modal">
     <div class="modal-title">+ Nuova Ricetta</div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Nome piatto *</label><input class="form-input" id="ric-nome" placeholder="es. Gin Tonic Hendrick's"></div>
+      <div class="form-group"><label class="form-label">Nome *</label><input class="form-input" id="ric-nome" placeholder="es. Gin Tonic"></div>
       <div class="form-group"><label class="form-label">Tipo</label>
         <select class="form-select" id="ric-tipo"><option>Cucina</option><option>Bar</option><option>Dessert</option></select>
       </div>
     </div>
     <div id="ric-ingredienti-rows">
       <div class="form-row ric-ing-row">
-        <div class="form-group"><label class="form-label">Ingrediente 1</label><input class="form-input ric-ing-name" placeholder="Nome ingrediente"></div>
-        <div class="form-group"><label class="form-label">Quantità (unità)</label><input class="form-input ric-ing-qty" type="number" step="0.001" placeholder="0.050"></div>
-        <div class="form-group"><label class="form-label">Costo/unità (€)</label><input class="form-input ric-ing-cost" type="number" step="0.01" placeholder="0.00"></div>
+        <div class="form-group"><label class="form-label">Ingrediente 1</label><input class="form-input ric-ing-name" placeholder="Nome"></div>
+        <div class="form-group"><label class="form-label">Quantità</label><input class="form-input ric-ing-qty" type="number" step="0.001" placeholder="0.050"></div>
+        <div class="form-group"><label class="form-label">€/unità</label><input class="form-input ric-ing-cost" type="number" step="0.01" placeholder="0.00"></div>
       </div>
     </div>
-    <button class="btn btn-secondary btn-sm" onclick="addIngRow()" style="margin-bottom:12px">+ Ingrediente</button>
+    <button class="btn btn-ghost btn-sm" onclick="addIngRow()" style="margin-bottom:12px">+ Ingrediente</button>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Prezzo vendita (€) *</label><input class="form-input" id="ric-prezzo" type="number" step="0.01" placeholder="0.00"></div>
+      <div class="form-group"><label class="form-label">Prezzo vendita (€) *</label><input class="form-input" id="ric-prezzo" type="number" step="0.01"></div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('modal-add-ricetta')">Annulla</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-ricetta')">Annulla</button>
       <button class="btn btn-primary" onclick="addRicetta()">Salva</button>
     </div>
   </div>
 </div>
 
-<div class="modal-overlay" id="modal-add-vendita">
+<div class="overlay" id="modal-add-vendita">
   <div class="modal">
     <div class="modal-title">+ Registra Vendita</div>
     <div class="form-group"><label class="form-label">Data *</label><input class="form-input" id="vend-data" type="date"></div>
-    <div class="form-group"><label class="form-label">Piatto / Bevanda *</label>
-      <select class="form-select" id="vend-piatto"></select>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Quantità *</label><input class="form-input" id="vend-qty" type="number" min="1" placeholder="1"></div>
-    </div>
+    <div class="form-group"><label class="form-label">Piatto / Bevanda *</label><select class="form-select" id="vend-piatto"></select></div>
+    <div class="form-group"><label class="form-label">Quantità *</label><input class="form-input" id="vend-qty" type="number" min="1" placeholder="1"></div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('modal-add-vendita')">Annulla</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-vendita')">Annulla</button>
       <button class="btn btn-primary" onclick="addVendita()">Salva</button>
     </div>
   </div>
 </div>
 
-<div class="modal-overlay" id="modal-edit-ing">
+<div class="overlay" id="modal-edit-ing">
   <div class="modal">
     <div class="modal-title">Aggiorna Scorta</div>
     <div class="form-group"><label class="form-label">Ingrediente</label><input class="form-input" id="edit-nome" disabled></div>
@@ -561,8 +548,64 @@
     </div>
     <input type="hidden" id="edit-idx">
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('modal-edit-ing')">Annulla</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-edit-ing')">Annulla</button>
       <button class="btn btn-primary" onclick="saveEdit()">Aggiorna</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-add-user">
+  <div class="modal">
+    <div class="modal-title">+ Nuovo Utente</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nome completo *</label><input class="form-input" id="new-nome" placeholder="es. Mario Rossi"></div>
+      <div class="form-group"><label class="form-label">Username *</label><input class="form-input" id="new-user" placeholder="es. mario.rossi"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Password *</label><input class="form-input" type="password" id="new-pass" placeholder="••••••••"></div>
+      <div class="form-group"><label class="form-label">Ruolo *</label><input class="form-input" id="new-ruolo" placeholder="es. Barman, Cucina, Cameriere"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Permessi</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="p-dashboard" checked> Dashboard</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="p-magazzino"> Magazzino</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="p-ricette"> Ricette</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="p-vendite"> Vendite</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="p-alert"> Alert</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="p-servizio" checked> Servizio</label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-user')">Annulla</button>
+      <button class="btn btn-primary" onclick="addUser()">Crea Utente</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-edit-user">
+  <div class="modal">
+    <div class="modal-title">Modifica Utente</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nome completo</label><input class="form-input" id="eu-nome"></div>
+      <div class="form-group"><label class="form-label">Ruolo</label><input class="form-input" id="eu-ruolo"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Nuova Password (lascia vuoto per non cambiare)</label><input class="form-input" type="password" id="eu-pass" placeholder="••••••••"></div>
+    <div class="form-group">
+      <label class="form-label">Permessi</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eu-p-dashboard"> Dashboard</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eu-p-magazzino"> Magazzino</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eu-p-ricette"> Ricette</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eu-p-vendite"> Vendite</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eu-p-alert"> Alert</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="eu-p-servizio"> Servizio</label>
+      </div>
+    </div>
+    <input type="hidden" id="eu-id">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-edit-user')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveUser()">Salva</button>
     </div>
   </div>
 </div>
@@ -570,9 +613,6 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════════════════
-// SUPABASE CONFIG — sostituisci con i tuoi valori
-// ══════════════════════════════════════
 const SUPABASE_URL = 'https://ozyndbuzxhdmszfiggry.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96eW5kYnV6eGhkbXN6ZmlnZ3J5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzMDIxMjIsImV4cCI6MjA5Nzg3ODEyMn0.RVlRWoYOyZKZU6uvXK_KG2WL8sZibWX-KubMogSDhgc';
 const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -694,297 +734,191 @@ function filterTable(tbodyId, q, col){
   });
 }
 
+
 // ══════════════════════════════════════
-// NAVIGATION
+// AUTH SYSTEM
 // ══════════════════════════════════════
-function showPanel(name){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('panel-'+name).classList.add('active');
-  event.currentTarget.classList.add('active');
-  if(name==='dashboard') renderDashboard();
-  if(name==='magazzino') renderMagazzino();
-  if(name==='ricette') renderRicette();
-  if(name==='vendite') renderVendite();
-  if(name==='alert') renderAlert();
-  if(name==='servizio') renderServizio();
+let currentUser = null;
+
+// Default admin — cambia password dopo il primo accesso
+const DEFAULT_ADMIN = {
+  id: 'admin',
+  username: 'admin',
+  password: 'oversy2024',
+  nome: 'Amministratore',
+  ruolo: 'Admin',
+  is_admin: true,
+  permessi: { dashboard:true, magazzino:true, ricette:true, vendite:true, alert:true, servizio:true }
+};
+
+async function loadUsers(){
+  const { data } = await supa.from('utenti').select('*').order('nome');
+  return data || [];
 }
 
-// ══════════════════════════════════════
-// DASHBOARD
-// ══════════════════════════════════════
-function renderDashboard(){
-  // KPI
-  const totIncasso = db.vendite.reduce((s,v)=>s+v.qty*v.prezzo,0);
-  const totCosto   = db.vendite.reduce((s,v)=>s+v.qty*v.costo_unit,0);
-  const fc = totIncasso > 0 ? totCosto/totIncasso : 0;
-  const valMag = db.ingredienti.reduce((s,i)=>s+i.att*i.prezzo,0);
-  const critici = db.ingredienti.filter(i=>i.att<=i.min).length;
+async function doLogin(){
+  const username = document.getElementById('login-user').value.trim();
+  const password = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  err.style.display = 'none';
 
-  document.getElementById('kpi-row').innerHTML = `
-    <div class="kpi kpi-green"><div class="kpi-label">Incasso Totale</div><div class="kpi-value">${fmt(totIncasso)}</div><div class="kpi-sub">Periodo corrente</div></div>
-    <div class="kpi kpi-blue"><div class="kpi-label">Margine Lordo</div><div class="kpi-value">${fmt(totIncasso-totCosto)}</div><div class="kpi-sub">Dopo costo ingredienti</div></div>
-    <div class="kpi ${fc>0.4?'kpi-danger':fc>0.33?'kpi-warn':'kpi-green'}"><div class="kpi-label">Food Cost Medio</div><div class="kpi-value">${pct(fc)}</div><div class="kpi-sub">Target: 25–33%</div></div>
-    <div class="kpi kpi-blue"><div class="kpi-label">Valore Magazzino</div><div class="kpi-value">${fmt(valMag)}</div><div class="kpi-sub">Scorte attuali</div></div>
-    <div class="kpi ${critici>0?'kpi-danger':'kpi-green'}"><div class="kpi-label">Scorte Critiche</div><div class="kpi-value">${critici}</div><div class="kpi-sub">Prodotti da ordinare</div></div>
-  `;
+  if(!username || !password){ err.textContent='Inserisci username e password'; err.style.display='block'; return; }
 
-  // Top piatti bar chart
-  const byPiatto = {};
-  db.vendite.forEach(v=>{ byPiatto[v.piatto]=(byPiatto[v.piatto]||0)+v.qty*v.prezzo; });
-  const sorted = Object.entries(byPiatto).sort((a,b)=>b[1]-a[1]).slice(0,7);
-  const maxVal = sorted[0]?.[1]||1;
-  document.getElementById('top-piatti-chart').innerHTML = sorted.map(([nome,val])=>`
-    <div class="bar-row-c">
-      <div class="bar-label-c">${nome}</div>
-      <div class="bar-track"><div class="bar-fill-c" style="width:${val/maxVal*100}%"></div></div>
-      <div class="bar-val-c">${fmt(val)}</div>
-    </div>`).join('');
-
-  // Food cost per ricetta
-  const fcRows = db.ricette.map(r=>{
-    const c = ricettaCosto(r);
-    const fc = r.prezzo > 0 ? c/r.prezzo : 0;
-    return {nome:r.nome, fc};
-  }).sort((a,b)=>b.fc-a.fc).slice(0,8);
-  document.getElementById('fc-chart').innerHTML = `<div class="bar-chart">`+fcRows.map(r=>`
-    <div class="bar-row-c">
-      <div class="bar-label-c">${r.nome}</div>
-      <span class="fc-pill ${fcClass(r.fc)}">${pct(r.fc)}</span>
-    </div>`).join('')+`</div>`;
-
-  // Alert
-  const crit = db.ingredienti.filter(i=>i.att<=i.min);
-  document.getElementById('dash-alerts').innerHTML = crit.length===0
-    ? `<div class="empty"><div class="empty-icon">✅</div><p>Tutte le scorte sono sufficienti</p></div>`
-    : crit.map(i=>{
-        const st = getStatus(i);
-        const daOrd = Math.max(0, i.max - i.att).toFixed(2);
-        return `<div class="alert-card ${st.cls==='badge-warn'?'warn':''}">
-          <div><div class="alert-name">${i.nome}</div>
-          <div class="alert-detail">${i.cat} · Scorta: ${i.att} ${i.unit} (min: ${i.min}) · Fornitore: ${i.forn}</div></div>
-          <div class="alert-right">
-            <span class="badge ${st.cls}">${st.label}</span>
-            <span style="font-size:12px;color:var(--text3)">Da ordinare: <b>${daOrd} ${i.unit}</b></span>
-            <a href="tel:${i.tel}" style="font-size:12px;color:var(--accent2)">${i.tel}</a>
-          </div>
-        </div>`;
-      }).join('');
-}
-
-// ══════════════════════════════════════
-// MAGAZZINO
-// ══════════════════════════════════════
-function renderMagazzino(){
-  const tb = document.getElementById('mag-tbody');
-  tb.innerHTML = db.ingredienti.map((ing,i)=>{
-    const st = getStatus(ing);
-    const val = (ing.att * ing.prezzo).toFixed(2);
-    return `<tr>
-      <td class="td-bold">${ing.nome}</td>
-      <td><span style="font-size:12px;color:var(--text3)">${ing.cat}</span></td>
-      <td class="td-right td-mono">${ing.att}</td>
-      <td style="color:var(--text3);font-size:12px">${ing.unit}</td>
-      <td class="td-right" style="color:var(--warn)">${ing.min}</td>
-      <td class="td-right">${fmt(ing.prezzo)}</td>
-      <td class="td-right td-mono" style="color:var(--accent)">${fmt(val)}</td>
-      <td style="font-size:12px">${ing.forn}<br><a href="tel:${ing.tel}" style="color:var(--accent2);font-size:11px">${ing.tel}</a></td>
-      <td><span class="badge ${st.cls}">${st.label}</span></td>
-      <td class="td-center"><button class="btn btn-secondary btn-sm" onclick="openEdit(${i})">✏️ Edit</button></td>
-    </tr>`;
-  }).join('');
-}
-
-// ══════════════════════════════════════
-// RICETTE
-// ══════════════════════════════════════
-function renderRicette(){
-  const tb = document.getElementById('ric-tbody');
-  tb.innerHTML = db.ricette.map(r=>{
-    const costo = ricettaCosto(r);
-    const fc = r.prezzo > 0 ? costo/r.prezzo : 0;
-    const margine = r.prezzo - costo;
-    const ingList = r.ings.map(i=>`${i.n} (${i.q})`).join(', ');
-    const tipoBadge = r.tipo==='Bar'?'badge-blue':r.tipo==='Dessert'?'badge-warn':'badge-ok';
-    return `<tr>
-      <td class="td-bold">${r.nome}</td>
-      <td><span class="badge ${tipoBadge}">${r.tipo}</span></td>
-      <td style="font-size:12px;color:var(--text3);max-width:220px">${ingList}</td>
-      <td class="td-right td-mono">${fmt(costo)}</td>
-      <td class="td-right td-mono" style="color:var(--accent2)">${fmt(r.prezzo)}</td>
-      <td class="td-center"><span class="fc-pill ${fcClass(fc)}">${pct(fc)}</span></td>
-      <td class="td-right td-mono" style="color:var(--accent)">${fmt(margine)}</td>
-    </tr>`;
-  }).join('');
-}
-
-// ══════════════════════════════════════
-// VENDITE
-// ══════════════════════════════════════
-function renderVendite(){
-  const totIncasso = db.vendite.reduce((s,v)=>s+v.qty*v.prezzo,0);
-  const totCosto   = db.vendite.reduce((s,v)=>s+v.qty*v.costo_unit,0);
-  const totMargine = totIncasso - totCosto;
-  document.getElementById('vendite-kpi').innerHTML = `
-    <div class="kpi kpi-green"><div class="kpi-label">Incasso</div><div class="kpi-value">${fmt(totIncasso)}</div></div>
-    <div class="kpi kpi-warn"><div class="kpi-label">Costo Ingredienti</div><div class="kpi-value">${fmt(totCosto)}</div></div>
-    <div class="kpi kpi-blue"><div class="kpi-label">Margine</div><div class="kpi-value">${fmt(totMargine)}</div></div>
-  `;
-
-  const tb = document.getElementById('vend-tbody');
-  const sorted = [...db.vendite].sort((a,b)=>b.data.localeCompare(a.data));
-  tb.innerHTML = sorted.map((v,i)=>{
-    const incasso = v.qty * v.prezzo;
-    const costo   = v.qty * v.costo_unit;
-    const margine = incasso - costo;
-    const tipoBadge = v.tipo==='Bar'?'badge-blue':v.tipo==='Dessert'?'badge-warn':'badge-ok';
-    return `<tr>
-      <td style="font-size:12px;color:var(--text3)">${v.data}</td>
-      <td class="td-bold">${v.piatto}</td>
-      <td><span class="badge ${tipoBadge}">${v.tipo}</span></td>
-      <td class="td-right td-mono">${v.qty}</td>
-      <td class="td-right">${fmt(v.prezzo)}</td>
-      <td class="td-right td-mono" style="color:var(--accent)">${fmt(incasso)}</td>
-      <td class="td-right" style="color:var(--danger)">${fmt(costo)}</td>
-      <td class="td-right td-mono" style="color:var(--accent2)">${fmt(margine)}</td>
-    </tr>`;
-  }).join('');
-}
-
-// ══════════════════════════════════════
-// ALERT
-// ══════════════════════════════════════
-function renderAlert(){
-  const probs = db.ingredienti.filter(i=>i.att<=i.min).sort((a,b)=>(a.att/a.min)-(b.att/b.min));
-  const al = document.getElementById('alert-list');
-  if(probs.length===0){
-    al.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><p>Tutte le scorte sono OK — nessun ordine necessario</p></div>`;
+  // Check admin default
+  if(username === DEFAULT_ADMIN.username && password === DEFAULT_ADMIN.password){
+    currentUser = DEFAULT_ADMIN;
+    startApp();
     return;
   }
-  al.innerHTML = probs.map(i=>{
-    const st = getStatus(i);
-    const daOrd = Math.max(0, i.max - i.att).toFixed(2);
-    const costoOrd = (daOrd * i.prezzo).toFixed(2);
-    return `<div class="alert-card ${st.cls==='badge-warn'?'warn':''}">
-      <div style="flex:1">
-        <div class="alert-name">${i.nome} <span class="badge ${st.cls}" style="margin-left:6px">${st.label}</span></div>
-        <div class="alert-detail" style="margin-top:4px">
-          Scorta attuale: <b>${i.att} ${i.unit}</b> · Minima: <b>${i.min} ${i.unit}</b> · Categoria: ${i.cat}
+
+  // Check DB users
+  const { data } = await supa.from('utenti').select('*').eq('username', username).eq('password', password).single();
+  if(data){
+    currentUser = {
+      ...data,
+      permessi: typeof data.permessi === 'string' ? JSON.parse(data.permessi) : (data.permessi || {})
+    };
+    startApp();
+  } else {
+    err.textContent = 'Username o password non corretti';
+    err.style.display = 'block';
+  }
+}
+
+function startApp(){
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-shell').style.display = 'block';
+  // Set user info in topbar
+  document.getElementById('top-username').textContent = currentUser.nome;
+  document.getElementById('top-role').textContent = currentUser.ruolo;
+  document.getElementById('top-avatar').textContent = currentUser.nome.charAt(0).toUpperCase();
+  // Show admin tab
+  if(currentUser.is_admin) document.getElementById('nav-admin').style.display = 'flex';
+  // Apply permissions — hide tabs user cannot see
+  const permMap = { magazzino:'magazzino', ricette:'ricette', vendite:'vendite', alert:'alert', servizio:'servizio' };
+  if(!currentUser.is_admin){
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      const panel = tab.getAttribute('onclick')?.match(/'(\w+)'/)?.[1];
+      if(panel && permMap[panel] && !currentUser.permessi[panel]){
+        tab.style.display = 'none';
+      }
+    });
+  }
+  loadAll();
+}
+
+function doLogout(){
+  currentUser = null;
+  document.getElementById('app-shell').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').style.display = 'none';
+  // Reset nav tabs
+  document.querySelectorAll('.nav-tab').forEach(t=>{ t.style.display=''; t.classList.remove('active'); });
+  document.querySelector('.nav-tab').classList.add('active');
+  document.getElementById('nav-admin').style.display = 'none';
+}
+
+// ══════════════════════════════════════
+// USER MANAGEMENT (admin)
+// ══════════════════════════════════════
+async function renderAdmin(){
+  const users = await loadUsers();
+  const el = document.getElementById('users-list');
+  if(users.length === 0){
+    el.innerHTML = `<div class="empty"><div class="empty-icon">👤</div><p>Nessun utente aggiunto ancora.<br>Clicca "+ Nuovo Utente" per iniziare.</p></div>`;
+    return;
+  }
+  el.innerHTML = users.map(u => {
+    const perms = typeof u.permessi==='string'?JSON.parse(u.permessi):(u.permessi||{});
+    const permLabels = Object.entries(perms).filter(([k,v])=>v).map(([k])=>k).join(', ');
+    return `<div class="user-card">
+      <div class="user-card-left">
+        <div class="user-avatar-lg">${u.nome.charAt(0).toUpperCase()}</div>
+        <div>
+          <div class="user-card-name">${u.nome} <span class="badge badge-blue" style="margin-left:6px">${u.ruolo}</span></div>
+          <div class="user-card-info">@${u.username} · Accesso: ${permLabels||'nessuno'}</div>
         </div>
-        <div class="alert-detail" style="margin-top:2px">
-          Da ordinare: <b style="color:var(--warn)">${daOrd} ${i.unit}</b> · Costo stimato ordine: <b style="color:var(--accent)">${fmt(costoOrd)}</b>
-        </div>
-        <div class="alert-detail" style="margin-top:4px">📞 ${i.forn} · <a href="tel:${i.tel}" style="color:var(--accent2)">${i.tel}</a></div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
-        <a href="tel:${i.tel}" class="btn btn-primary btn-sm">📞 Chiama</a>
-        <a href="https://wa.me/${i.tel.replace(/\D/g,'')}" target="_blank" class="btn btn-secondary btn-sm">💬 WhatsApp</a>
+      <div class="user-card-right">
+        <button class="btn btn-ghost btn-sm" onclick="openEditUser(${u.id})">✏️ Modifica</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id},'${u.nome}')">🗑</button>
       </div>
     </div>`;
   }).join('');
 }
 
-// ══════════════════════════════════════
-// MODALS
-// ══════════════════════════════════════
-function openModal(id){
-  if(id==='modal-add-vendita'){
-    const sel = document.getElementById('vend-piatto');
-    sel.innerHTML = db.ricette.map(r=>`<option value="${r.nome}">${r.nome} (${r.tipo}) — ${fmt(r.prezzo)}</option>`).join('');
-    document.getElementById('vend-data').value = new Date().toISOString().slice(0,10);
-  }
-  document.getElementById(id).classList.add('open');
-}
-function closeModal(id){ document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(m=>{
-  m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('open'); });
-});
-
-async function addIngrediente(){
-  const nome = document.getElementById('ing-nome').value.trim();
-  if(!nome){ showToast('Inserisci il nome','error'); return; }
-  const ing = {
-    nome, cat: document.getElementById('ing-cat').value,
-    unit: document.getElementById('ing-unit').value,
-    att: parseFloat(document.getElementById('ing-att').value)||0,
-    min: parseFloat(document.getElementById('ing-min').value)||0,
-    max: parseFloat(document.getElementById('ing-max').value)||0,
-    prezzo: parseFloat(document.getElementById('ing-prezzo').value)||0,
-    forn: document.getElementById('ing-forn').value,
-    tel: document.getElementById('ing-tel').value,
+async function addUser(){
+  const nome   = document.getElementById('new-nome').value.trim();
+  const user   = document.getElementById('new-user').value.trim().toLowerCase();
+  const pass   = document.getElementById('new-pass').value;
+  const ruolo  = document.getElementById('new-ruolo').value.trim();
+  if(!nome||!user||!pass||!ruolo){ showToast('Compila tutti i campi obbligatori','error'); return; }
+  const permessi = {
+    dashboard: document.getElementById('p-dashboard').checked,
+    magazzino: document.getElementById('p-magazzino').checked,
+    ricette:   document.getElementById('p-ricette').checked,
+    vendite:   document.getElementById('p-vendite').checked,
+    alert:     document.getElementById('p-alert').checked,
+    servizio:  document.getElementById('p-servizio').checked,
   };
-  const saved = await insertIngToDB(ing);
-  if(!saved) return;
-  db.ingredienti.push({...ing, id: saved.id});
-  closeModal('modal-add-ing'); renderMagazzino();
-  showToast(`${nome} aggiunto al magazzino ✓`);
-  ['ing-nome','ing-att','ing-min','ing-max','ing-prezzo','ing-forn','ing-tel'].forEach(id=>document.getElementById(id).value='');
+  const { error } = await supa.from('utenti').insert([{ nome, username:user, password:pass, ruolo, permessi:JSON.stringify(permessi), is_admin:false }]);
+  if(error){ showToast('Errore: '+error.message,'error'); return; }
+  closeModal('modal-add-user');
+  showToast(`Utente ${nome} creato ✓`);
+  renderAdmin();
+  ['new-nome','new-user','new-pass','new-ruolo'].forEach(id=>document.getElementById(id).value='');
 }
 
-function addIngRow(){
-  const container = document.getElementById('ric-ingredienti-rows');
-  const idx = container.querySelectorAll('.ric-ing-row').length + 1;
-  const div = document.createElement('div');
-  div.className = 'form-row ric-ing-row';
-  div.innerHTML = `
-    <div class="form-group"><label class="form-label">Ingrediente ${idx}</label><input class="form-input ric-ing-name" placeholder="Nome ingrediente"></div>
-    <div class="form-group"><label class="form-label">Quantità</label><input class="form-input ric-ing-qty" type="number" step="0.001" placeholder="0.050"></div>
-    <div class="form-group"><label class="form-label">Costo/unità (€)</label><input class="form-input ric-ing-cost" type="number" step="0.01" placeholder="0.00"></div>`;
-  container.appendChild(div);
+async function openEditUser(id){
+  const users = await loadUsers();
+  const u = users.find(x=>x.id===id);
+  if(!u) return;
+  const perms = typeof u.permessi==='string'?JSON.parse(u.permessi):(u.permessi||{});
+  document.getElementById('eu-nome').value  = u.nome;
+  document.getElementById('eu-ruolo').value = u.ruolo;
+  document.getElementById('eu-pass').value  = '';
+  document.getElementById('eu-id').value    = u.id;
+  document.getElementById('eu-p-dashboard').checked = !!perms.dashboard;
+  document.getElementById('eu-p-magazzino').checked = !!perms.magazzino;
+  document.getElementById('eu-p-ricette').checked   = !!perms.ricette;
+  document.getElementById('eu-p-vendite').checked   = !!perms.vendite;
+  document.getElementById('eu-p-alert').checked     = !!perms.alert;
+  document.getElementById('eu-p-servizio').checked  = !!perms.servizio;
+  openModal('modal-edit-user');
 }
 
-async function addRicetta(){
-  const nome = document.getElementById('ric-nome').value.trim();
-  const prezzo = parseFloat(document.getElementById('ric-prezzo').value)||0;
-  if(!nome||!prezzo){ showToast('Compila nome e prezzo','error'); return; }
-  const names = document.querySelectorAll('.ric-ing-name');
-  const qtys  = document.querySelectorAll('.ric-ing-qty');
-  const costs = document.querySelectorAll('.ric-ing-cost');
-  const ings = [];
-  names.forEach((n,i)=>{ if(n.value.trim()) ings.push({n:n.value.trim(),q:parseFloat(qtys[i].value)||0,c:parseFloat(costs[i].value)||0}); });
-  const ric = { nome, tipo: document.getElementById('ric-tipo').value, ings, prezzo };
-  const saved = await insertRicettaToDB(ric);
-  if(!saved) return;
-  db.ricette.push({...ric, id: saved.id});
-  closeModal('modal-add-ricetta'); renderRicette();
-  showToast(`Ricetta "${nome}" salvata ✓`);
+async function saveUser(){
+  const id    = document.getElementById('eu-id').value;
+  const nome  = document.getElementById('eu-nome').value.trim();
+  const ruolo = document.getElementById('eu-ruolo').value.trim();
+  const pass  = document.getElementById('eu-pass').value;
+  const permessi = {
+    dashboard: document.getElementById('eu-p-dashboard').checked,
+    magazzino: document.getElementById('eu-p-magazzino').checked,
+    ricette:   document.getElementById('eu-p-ricette').checked,
+    vendite:   document.getElementById('eu-p-vendite').checked,
+    alert:     document.getElementById('eu-p-alert').checked,
+    servizio:  document.getElementById('eu-p-servizio').checked,
+  };
+  const update = { nome, ruolo, permessi:JSON.stringify(permessi) };
+  if(pass) update.password = pass;
+  const { error } = await supa.from('utenti').update(update).eq('id', id);
+  if(error){ showToast('Errore: '+error.message,'error'); return; }
+  closeModal('modal-edit-user');
+  showToast(`Utente aggiornato ✓`);
+  renderAdmin();
 }
 
-async function addVendita(){
-  const piatto = document.getElementById('vend-piatto').value;
-  const qty    = parseInt(document.getElementById('vend-qty').value)||1;
-  const data   = document.getElementById('vend-data').value;
-  const ric    = db.ricette.find(r=>r.nome===piatto);
-  if(!ric){ showToast('Piatto non trovato','error'); return; }
-  const costo_unit = ricettaCosto(ric);
-  const v = { data, piatto, tipo: ric.tipo, qty, prezzo: ric.prezzo, costo_unit };
-  const saved = await insertVenditaToDB(v);
-  if(!saved) return;
-  db.vendite.unshift({...v, id: saved.id});
-  closeModal('modal-add-vendita'); renderVendite();
-  showToast(`${qty}× ${piatto} registrati ✓`);
+async function deleteUser(id, nome){
+  if(!confirm(`Eliminare l'utente ${nome}?`)) return;
+  await supa.from('utenti').delete().eq('id', id);
+  showToast(`${nome} eliminato`);
+  renderAdmin();
 }
 
-function openEdit(i){
-  const ing = db.ingredienti[i];
-  document.getElementById('edit-nome').value   = ing.nome;
-  document.getElementById('edit-att').value    = ing.att;
-  document.getElementById('edit-prezzo').value = ing.prezzo;
-  document.getElementById('edit-idx').value    = i;
-  openModal('modal-edit-ing');
-}
-async function saveEdit(){
-  const i   = parseInt(document.getElementById('edit-idx').value);
-  const att = parseFloat(document.getElementById('edit-att').value);
-  const pr  = parseFloat(document.getElementById('edit-prezzo').value);
-  if(isNaN(att)){ showToast('Inserisci una quantità valida','error'); return; }
-  db.ingredienti[i].att    = att;
-  db.ingredienti[i].prezzo = pr || db.ingredienti[i].prezzo;
-  await saveIngToDB(db.ingredienti[i]);
-  closeModal('modal-edit-ing'); renderMagazzino();
-  showToast(`Scorta aggiornata ✓`);
-}
-
+// ══════════════════════════════════════
 // ══════════════════════════════════════
 // SERVIZIO
 // ══════════════════════════════════════
@@ -1215,6 +1149,312 @@ function clearLog(){
 }
 document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
 renderDashboard();
+
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+function showPanel(name, el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(el) el.classList.add('active');
+  if(name==='dashboard') renderDashboard();
+  if(name==='magazzino') renderMagazzino();
+  if(name==='ricette') renderRicette();
+  if(name==='vendite') renderVendite();
+  if(name==='alert') renderAlert();
+  if(name==='servizio') renderServizio();
+}
+
+// ══════════════════════════════════════
+// RENDERS
+// ══════════════════════════════════════
+function renderDashboard(){
+  const totI=db.vendite.reduce((s,v)=>s+v.qty*v.prezzo,0);
+  const totC=db.vendite.reduce((s,v)=>s+v.qty*v.costo_unit,0);
+  const fc=totI>0?totC/totI:0;
+  const valMag=db.ingredienti.reduce((s,i)=>s+i.att*i.prezzo,0);
+  const critici=db.ingredienti.filter(i=>i.att<=i.min).length;
+  document.getElementById('kpi-row').innerHTML=`
+    <div class="kpi kpi-blue"><div class="kpi-stripe"></div><span class="kpi-icon">💰</span><div class="kpi-label">Incasso Totale</div><div class="kpi-value">${fmt(totI)}</div><div class="kpi-sub">Periodo corrente</div></div>
+    <div class="kpi kpi-wood"><div class="kpi-stripe"></div><span class="kpi-icon">📈</span><div class="kpi-label">Margine Lordo</div><div class="kpi-value">${fmt(totI-totC)}</div><div class="kpi-sub">Dopo ingredienti</div></div>
+    <div class="kpi ${fc>0.4?'kpi-danger':fc>0.33?'kpi-warn':'kpi-green'}"><div class="kpi-stripe"></div><span class="kpi-icon">🎯</span><div class="kpi-label">Food Cost</div><div class="kpi-value">${pct(fc)}</div><div class="kpi-sub">Target 25–33%</div></div>
+    <div class="kpi kpi-blue"><div class="kpi-stripe"></div><span class="kpi-icon">📦</span><div class="kpi-label">Magazzino</div><div class="kpi-value">${fmt(valMag)}</div><div class="kpi-sub">Valore scorte</div></div>
+    <div class="kpi ${critici>0?'kpi-danger':'kpi-green'}"><div class="kpi-stripe"></div><span class="kpi-icon">${critici>0?'🚨':'✅'}</span><div class="kpi-label">Critici</div><div class="kpi-value">${critici}</div><div class="kpi-sub">Prodotti da ordinare</div></div>
+  `;
+  const byP={};db.vendite.forEach(v=>{byP[v.piatto]=(byP[v.piatto]||0)+v.qty*v.prezzo;});
+  const sorted=Object.entries(byP).sort((a,b)=>b[1]-a[1]).slice(0,7);
+  const maxV=sorted[0]?.[1]||1;
+  document.getElementById('top-chart').innerHTML=sorted.map(([n,v])=>`
+    <div class="bar-item"><div class="bar-name">${n}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${v/maxV*100}%"></div></div>
+    <div class="bar-val">${fmt(v)}</div></div>`).join('');
+  const fcRows=db.ricette.map(r=>{const c=ricettaCosto(r);return{nome:r.nome,fc:r.prezzo>0?c/r.prezzo:0};}).sort((a,b)=>b.fc-a.fc).slice(0,8);
+  document.getElementById('fc-chart').innerHTML=fcRows.map(r=>`
+    <div class="bar-item"><div class="bar-name">${r.nome}</div>
+    <span class="fc ${fcClass(r.fc)}">${pct(r.fc)}</span></div>`).join('');
+  const crit=db.ingredienti.filter(i=>i.att<=i.min);
+  document.getElementById('dash-alerts').innerHTML=crit.length===0
+    ?`<div class="empty"><div class="empty-icon">✅</div><p>Tutte le scorte sono sufficienti</p></div>`
+    :crit.map(i=>{const st=getStatus(i);const daOrd=Math.max(0,i.max-i.att).toFixed(2);
+      return`<div class="alert-card ${st.cls==='badge-warn'?'warn':''}">
+        <div><div class="alert-name">${i.nome}</div>
+        <div class="alert-detail">${i.cat} · Scorta: ${i.att} ${i.unit} · Min: ${i.min} · Ordina: <b>${daOrd} ${i.unit}</b></div>
+        <div class="alert-detail" style="margin-top:3px">📞 ${i.forn} · <a href="tel:${i.tel}" style="color:var(--blue)">${i.tel}</a></div></div>
+        <div class="alert-right">
+          <span class="badge ${st.cls}">${st.label}</span>
+          <a href="tel:${i.tel}" class="btn btn-primary btn-sm">📞 Chiama</a>
+          <a href="https://wa.me/${i.tel.replace(/\D/g,'')}" target="_blank" class="btn btn-ghost btn-sm">💬 WA</a>
+        </div>
+      </div>`;}).join('');
+}
+
+function renderMagazzino(){
+  document.getElementById('mag-tbody').innerHTML=db.ingredienti.map((ing,i)=>{
+    const st=getStatus(ing);
+    return`<tr>
+      <td class="td-bold">${ing.nome}</td>
+      <td><span style="font-size:11px;color:var(--text3)">${ing.cat}</span></td>
+      <td class="td-r td-mono">${ing.att}</td>
+      <td style="color:var(--text3);font-size:12px">${ing.unit}</td>
+      <td class="td-r" style="color:var(--warn)">${ing.min}</td>
+      <td class="td-r">${fmt(ing.prezzo)}</td>
+      <td class="td-r td-mono" style="color:var(--blue)">${fmt(ing.att*ing.prezzo)}</td>
+      <td class="hide-m" style="font-size:12px">${ing.forn}<br><a href="tel:${ing.tel}" style="color:var(--blue);font-size:11px">${ing.tel}</a></td>
+      <td><span class="badge ${st.cls}">${st.label}</span></td>
+      <td class="td-c"><button class="btn btn-ghost btn-sm" onclick="openEdit(${i})">✏️</button></td>
+    </tr>`;}).join('');
+}
+
+function renderRicette(){
+  document.getElementById('ric-tbody').innerHTML=db.ricette.map(r=>{
+    const costo=ricettaCosto(r);const fc=r.prezzo>0?costo/r.prezzo:0;
+    const tipoCls=r.tipo==='Bar'?'badge-blue':r.tipo==='Dessert'?'badge-wood':'badge-ok';
+    return`<tr>
+      <td class="td-bold">${r.nome}</td>
+      <td><span class="badge ${tipoCls}">${r.tipo}</span></td>
+      <td class="hide-m" style="font-size:12px;color:var(--text3)">${r.ings.map(i=>`${i.n}(${i.q})`).join(', ')}</td>
+      <td class="td-r">${fmt(costo)}</td>
+      <td class="td-r" style="color:var(--blue)">${fmt(r.prezzo)}</td>
+      <td class="td-c"><span class="fc ${fcClass(fc)}">${pct(fc)}</span></td>
+      <td class="td-r td-mono" style="color:var(--wood2)">${fmt(r.prezzo-costo)}</td>
+    </tr>`;}).join('');
+}
+
+function renderVendite(){
+  const totI=db.vendite.reduce((s,v)=>s+v.qty*v.prezzo,0);
+  const totC=db.vendite.reduce((s,v)=>s+v.qty*v.costo_unit,0);
+  document.getElementById('vendite-kpi').innerHTML=`
+    <div class="kpi kpi-blue"><div class="kpi-stripe"></div><span class="kpi-icon">💰</span><div class="kpi-label">Incasso</div><div class="kpi-value">${fmt(totI)}</div></div>
+    <div class="kpi kpi-warn"><div class="kpi-stripe"></div><span class="kpi-icon">🛒</span><div class="kpi-label">Costo Ingredienti</div><div class="kpi-value">${fmt(totC)}</div></div>
+    <div class="kpi kpi-wood"><div class="kpi-stripe"></div><span class="kpi-icon">📈</span><div class="kpi-label">Margine</div><div class="kpi-value">${fmt(totI-totC)}</div></div>`;
+  document.getElementById('vend-tbody').innerHTML=[...db.vendite].sort((a,b)=>(b.data||'').localeCompare(a.data||'')).map(v=>{
+    const inc=v.qty*v.prezzo;const cos=v.qty*v.costo_unit;
+    const tipoCls=v.tipo==='Bar'?'badge-blue':v.tipo==='Dessert'?'badge-wood':'badge-ok';
+    return`<tr>
+      <td style="font-size:12px;color:var(--text3)">${v.data}</td>
+      <td class="td-bold">${v.piatto}</td>
+      <td><span class="badge ${tipoCls}">${v.tipo}</span></td>
+      <td class="td-r td-mono">${v.qty}</td>
+      <td class="td-r">${fmt(v.prezzo)}</td>
+      <td class="td-r td-mono" style="color:var(--blue)">${fmt(inc)}</td>
+      <td class="td-r" style="color:var(--danger)">${fmt(cos)}</td>
+      <td class="td-r td-mono" style="color:var(--wood2)">${fmt(inc-cos)}</td>
+    </tr>`;}).join('');
+}
+
+function renderAlert(){
+  const probs=db.ingredienti.filter(i=>i.att<=i.min).sort((a,b)=>(a.att/a.min)-(b.att/b.min));
+  document.getElementById('alert-list').innerHTML=probs.length===0
+    ?`<div class="empty"><div class="empty-icon">✅</div><p>Nessun ordine necessario — scorte OK</p></div>`
+    :probs.map(i=>{const st=getStatus(i);const daOrd=Math.max(0,i.max-i.att).toFixed(2);const costoOrd=(daOrd*i.prezzo).toFixed(2);
+      return`<div class="alert-card ${st.cls==='badge-warn'?'warn':''}">
+        <div style="flex:1">
+          <div class="alert-name">${i.nome} <span class="badge ${st.cls}" style="margin-left:6px">${st.label}</span></div>
+          <div class="alert-detail" style="margin-top:4px">Scorta: <b>${i.att} ${i.unit}</b> · Min: <b>${i.min}</b> · Da ordinare: <b style="color:var(--warn)">${daOrd} ${i.unit}</b> · Costo: <b style="color:var(--blue)">${fmt(costoOrd)}</b></div>
+          <div class="alert-detail" style="margin-top:3px">📞 ${i.forn} · <a href="tel:${i.tel}" style="color:var(--blue)">${i.tel}</a></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+          <a href="tel:${i.tel}" class="btn btn-primary btn-sm">📞 Chiama</a>
+          <a href="https://wa.me/${i.tel.replace(/\D/g,'')}" target="_blank" class="btn btn-ghost btn-sm">💬 WhatsApp</a>
+        </div>
+      </div>`;}).join('');
+}
+
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+function showPanel(name, el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(el) el.classList.add('active');
+  if(name==='dashboard') renderDashboard();
+  if(name==='magazzino') renderMagazzino();
+  if(name==='ricette')   renderRicette();
+  if(name==='vendite')   renderVendite();
+  if(name==='alert')     renderAlert();
+  if(name==='servizio')  renderServizio();
+  if(name==='admin')     renderAdmin();
+}
+
+// ══════════════════════════════════════
+// RENDERS
+// ══════════════════════════════════════
+function renderMagTotals(){
+  const ings = db.ingredienti;
+  const totValore = ings.reduce((s,i)=>s+i.att*i.prezzo,0);
+  const totProdotti = ings.length;
+  const ok = ings.filter(i=>i.att>i.min).length;
+  const warn = ings.filter(i=>i.att<=i.min && i.att>i.min*0.5).length;
+  const crit = ings.filter(i=>i.att<=i.min*0.5).length;
+  const categorie = [...new Set(ings.map(i=>i.cat))].length;
+  document.getElementById('mag-totals').innerHTML = `
+    <div class="mag-total-item">
+      <div class="mag-total-label">💰 Valore Totale</div>
+      <div class="mag-total-val blue">${fmt(totValore)}</div>
+      <div class="mag-total-sub">Scorte in magazzino</div>
+    </div>
+    <div class="mag-total-item">
+      <div class="mag-total-label">📦 Prodotti Totali</div>
+      <div class="mag-total-val blue">${totProdotti}</div>
+      <div class="mag-total-sub">in ${categorie} categorie</div>
+    </div>
+    <div class="mag-total-item">
+      <div class="mag-total-label">✅ Scorte OK</div>
+      <div class="mag-total-val green">${ok}</div>
+      <div class="mag-total-sub">prodotti sufficienti</div>
+    </div>
+    <div class="mag-total-item">
+      <div class="mag-total-label">🟡 Attenzione</div>
+      <div class="mag-total-val warn">${warn}</div>
+      <div class="mag-total-sub">sotto la soglia</div>
+    </div>
+    <div class="mag-total-item">
+      <div class="mag-total-label">🔴 Critici</div>
+      <div class="mag-total-val danger">${crit}</div>
+      <div class="mag-total-sub">da ordinare subito</div>
+    </div>
+  `;
+}
+
+function renderDashboard(){
+  const totI=db.vendite.reduce((s,v)=>s+v.qty*v.prezzo,0);
+  const totC=db.vendite.reduce((s,v)=>s+v.qty*v.costo_unit,0);
+  const fc=totI>0?totC/totI:0;
+  const valMag=db.ingredienti.reduce((s,i)=>s+i.att*i.prezzo,0);
+  const critici=db.ingredienti.filter(i=>i.att<=i.min).length;
+  document.getElementById('kpi-row').innerHTML=`
+    <div class="kpi kpi-blue"><div class="kpi-stripe"></div><span class="kpi-icon">💰</span><div class="kpi-label">Incasso Totale</div><div class="kpi-value">${fmt(totI)}</div><div class="kpi-sub">Periodo corrente</div></div>
+    <div class="kpi kpi-wood"><div class="kpi-stripe"></div><span class="kpi-icon">📈</span><div class="kpi-label">Margine Lordo</div><div class="kpi-value">${fmt(totI-totC)}</div><div class="kpi-sub">Dopo ingredienti</div></div>
+    <div class="kpi ${fc>0.4?'kpi-danger':fc>0.33?'kpi-warn':'kpi-green'}"><div class="kpi-stripe"></div><span class="kpi-icon">🎯</span><div class="kpi-label">Food Cost</div><div class="kpi-value">${pct(fc)}</div><div class="kpi-sub">Target 25–33%</div></div>
+    <div class="kpi kpi-blue"><div class="kpi-stripe"></div><span class="kpi-icon">📦</span><div class="kpi-label">Magazzino</div><div class="kpi-value">${fmt(valMag)}</div><div class="kpi-sub">Valore scorte</div></div>
+    <div class="kpi ${critici>0?'kpi-danger':'kpi-green'}"><div class="kpi-stripe"></div><span class="kpi-icon">${critici>0?'🚨':'✅'}</span><div class="kpi-label">Critici</div><div class="kpi-value">${critici}</div><div class="kpi-sub">Da ordinare</div></div>
+  `;
+  const byP={};db.vendite.forEach(v=>{byP[v.piatto]=(byP[v.piatto]||0)+v.qty*v.prezzo;});
+  const sorted=Object.entries(byP).sort((a,b)=>b[1]-a[1]).slice(0,7);
+  const maxV=sorted[0]?.[1]||1;
+  document.getElementById('top-chart').innerHTML=sorted.map(([n,v])=>`
+    <div class="bar-item"><div class="bar-name">${n}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${v/maxV*100}%"></div></div>
+    <div class="bar-val">${fmt(v)}</div></div>`).join('')||'<div style="padding:16px;color:var(--text3);font-size:13px">Nessuna vendita registrata</div>';
+  const fcRows=db.ricette.map(r=>{const c=ricettaCosto(r);return{nome:r.nome,fc:r.prezzo>0?c/r.prezzo:0};}).sort((a,b)=>b.fc-a.fc).slice(0,8);
+  document.getElementById('fc-chart').innerHTML=fcRows.map(r=>`
+    <div class="bar-item"><div class="bar-name">${r.nome}</div>
+    <span class="fc ${fcClass(r.fc)}">${pct(r.fc)}</span></div>`).join('');
+  const crit=db.ingredienti.filter(i=>i.att<=i.min);
+  document.getElementById('dash-alerts').innerHTML=crit.length===0
+    ?`<div class="empty"><div class="empty-icon">✅</div><p>Tutte le scorte sono OK</p></div>`
+    :crit.map(i=>{const st=getStatus(i);const daOrd=Math.max(0,i.max-i.att).toFixed(2);
+      return`<div class="alert-card ${st.cls==='badge-warn'?'warn':''}">
+        <div><div class="alert-name">${i.nome}</div>
+        <div class="alert-detail">${i.cat} · ${i.att} ${i.unit} (min:${i.min}) · ${i.forn}</div></div>
+        <div class="alert-right"><span class="badge ${st.cls}">${st.label}</span>
+        <span style="font-size:12px;color:var(--text3)">Ordina: <b>${daOrd} ${i.unit}</b></span>
+        <a href="tel:${i.tel}" style="font-size:12px;color:var(--blue)">${i.tel}</a></div>
+      </div>`;}).join('');
+}
+
+function renderMagazzino(){
+  renderMagTotals();
+  document.getElementById('mag-tbody').innerHTML=db.ingredienti.map((ing,i)=>{
+    const st=getStatus(ing);
+    return`<tr>
+      <td class="td-bold">${ing.nome}</td>
+      <td style="font-size:11px;color:var(--text3)">${ing.cat}</td>
+      <td class="td-r td-mono">${ing.att}</td>
+      <td style="color:var(--text3);font-size:12px">${ing.unit}</td>
+      <td class="td-r" style="color:var(--warn)">${ing.min}</td>
+      <td class="td-r">${fmt(ing.prezzo)}</td>
+      <td class="td-r td-mono" style="color:var(--blue)">${fmt(ing.att*ing.prezzo)}</td>
+      <td class="hide-m" style="font-size:12px">${ing.forn}<br><a href="tel:${ing.tel}" style="color:var(--blue);font-size:11px">${ing.tel}</a></td>
+      <td><span class="badge ${st.cls}">${st.label}</span></td>
+      <td class="td-c"><button class="btn btn-ghost btn-sm" onclick="openEdit(${i})">✏️</button></td>
+    </tr>`;}).join('');
+}
+
+function renderRicette(){
+  document.getElementById('ric-tbody').innerHTML=db.ricette.map(r=>{
+    const costo=ricettaCosto(r);const fc=r.prezzo>0?costo/r.prezzo:0;
+    const tipoCls=r.tipo==='Bar'?'badge-blue':r.tipo==='Dessert'?'badge-wood':'badge-ok';
+    return`<tr>
+      <td class="td-bold">${r.nome}</td>
+      <td><span class="badge ${tipoCls}">${r.tipo}</span></td>
+      <td class="hide-m" style="font-size:12px;color:var(--text3)">${r.ings.map(i=>`${i.n}(${i.q})`).join(', ')}</td>
+      <td class="td-r">${fmt(costo)}</td>
+      <td class="td-r" style="color:var(--blue)">${fmt(r.prezzo)}</td>
+      <td class="td-c"><span class="fc ${fcClass(fc)}">${pct(fc)}</span></td>
+      <td class="td-r td-mono" style="color:var(--wood2)">${fmt(r.prezzo-costo)}</td>
+    </tr>`;}).join('');
+}
+
+function renderVendite(){
+  const totI=db.vendite.reduce((s,v)=>s+v.qty*v.prezzo,0);
+  const totC=db.vendite.reduce((s,v)=>s+v.qty*v.costo_unit,0);
+  document.getElementById('vendite-kpi').innerHTML=`
+    <div class="kpi kpi-blue"><div class="kpi-stripe"></div><span class="kpi-icon">💰</span><div class="kpi-label">Incasso</div><div class="kpi-value">${fmt(totI)}</div></div>
+    <div class="kpi kpi-warn"><div class="kpi-stripe"></div><span class="kpi-icon">🛒</span><div class="kpi-label">Costo Ingredienti</div><div class="kpi-value">${fmt(totC)}</div></div>
+    <div class="kpi kpi-wood"><div class="kpi-stripe"></div><span class="kpi-icon">📈</span><div class="kpi-label">Margine</div><div class="kpi-value">${fmt(totI-totC)}</div></div>`;
+  document.getElementById('vend-tbody').innerHTML=[...db.vendite].sort((a,b)=>(b.data||'').localeCompare(a.data||'')).map(v=>{
+    const inc=v.qty*v.prezzo;const cos=v.qty*v.costo_unit;
+    const tipoCls=v.tipo==='Bar'?'badge-blue':v.tipo==='Dessert'?'badge-wood':'badge-ok';
+    return`<tr>
+      <td style="font-size:12px;color:var(--text3)">${v.data}</td>
+      <td class="td-bold">${v.piatto}</td>
+      <td><span class="badge ${tipoCls}">${v.tipo}</span></td>
+      <td class="td-r td-mono">${v.qty}</td>
+      <td class="td-r">${fmt(v.prezzo)}</td>
+      <td class="td-r td-mono" style="color:var(--blue)">${fmt(inc)}</td>
+      <td class="td-r" style="color:var(--danger)">${fmt(cos)}</td>
+      <td class="td-r td-mono" style="color:var(--wood2)">${fmt(inc-cos)}</td>
+    </tr>`;}).join('');
+}
+
+function renderAlert(){
+  const probs=db.ingredienti.filter(i=>i.att<=i.min).sort((a,b)=>(a.att/a.min)-(b.att/b.min));
+  document.getElementById('alert-list').innerHTML=probs.length===0
+    ?`<div class="empty"><div class="empty-icon">✅</div><p>Nessun ordine necessario</p></div>`
+    :probs.map(i=>{const st=getStatus(i);const daOrd=Math.max(0,i.max-i.att).toFixed(2);const costoOrd=(daOrd*i.prezzo).toFixed(2);
+      return`<div class="alert-card ${st.cls==='badge-warn'?'warn':''}">
+        <div style="flex:1">
+          <div class="alert-name">${i.nome} <span class="badge ${st.cls}" style="margin-left:6px">${st.label}</span></div>
+          <div class="alert-detail" style="margin-top:4px">Scorta: <b>${i.att} ${i.unit}</b> · Min: <b>${i.min}</b> · Da ordinare: <b style="color:var(--warn)">${daOrd} ${i.unit}</b> · Costo: <b style="color:var(--blue)">${fmt(costoOrd)}</b></div>
+          <div class="alert-detail" style="margin-top:3px">📞 ${i.forn} · <a href="tel:${i.tel}" style="color:var(--blue)">${i.tel}</a></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+          <a href="tel:${i.tel}" class="btn btn-primary btn-sm">📞 Chiama</a>
+          <a href="https://wa.me/${i.tel.replace(/\D/g,'')}" target="_blank" class="btn btn-ghost btn-sm">💬 WA</a>
+        </div>
+      </div>`;}).join('');
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+document.getElementById('topbar-date') && (document.getElementById('topbar-date').textContent = '');
+// Show login on start — app loads after login
 </script>
 </body>
 </html>
