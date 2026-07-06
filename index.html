@@ -833,15 +833,21 @@ async function doLogin(){
   }
 
   // Check DB users
-  const { data } = await supa.from('utenti').select('*').eq('username', username).eq('password', password).single();
-  if(data){
-    currentUser = {
-      ...data,
-      permessi: typeof data.permessi === 'string' ? JSON.parse(data.permessi) : (data.permessi || {})
-    };
-    startApp();
-  } else {
-    err.textContent = 'Username o password non corretti';
+  try {
+    const { data } = await supa.from('utenti').select('*').eq('username', username).eq('password', password);
+    if(data && data.length > 0){
+      const u = data[0];
+      currentUser = {
+        ...u,
+        permessi: typeof u.permessi === 'string' ? JSON.parse(u.permessi) : (u.permessi || {})
+      };
+      startApp();
+    } else {
+      err.textContent = 'Username o password non corretti';
+      err.style.display = 'block';
+    }
+  } catch(e) {
+    err.textContent = 'Errore connessione — riprova';
     err.style.display = 'block';
   }
 }
@@ -853,17 +859,42 @@ function startApp(){
   document.getElementById('top-username').textContent = currentUser.nome;
   document.getElementById('top-role').textContent = currentUser.ruolo;
   document.getElementById('top-avatar').textContent = currentUser.nome.charAt(0).toUpperCase();
-  // Show admin tab
+  // Show admin tab only for admin
   if(currentUser.is_admin) document.getElementById('nav-admin').style.display = 'flex';
-  // Apply permissions — hide tabs user cannot see
-  const permMap = { magazzino:'magazzino', ricette:'ricette', vendite:'vendite', alert:'alert', servizio:'servizio' };
+
   if(!currentUser.is_admin){
+    // Hide nav tabs based on permissions
+    const permMap = { dashboard:'dashboard', magazzino:'magazzino', ricette:'ricette', vendite:'vendite', alert:'alert', servizio:'servizio' };
+    let firstAllowed = null;
     document.querySelectorAll('.nav-tab').forEach(tab => {
-      const panel = tab.getAttribute('onclick')?.match(/'(\w+)'/)?.[1];
-      if(panel && permMap[panel] && !currentUser.permessi[panel]){
-        tab.style.display = 'none';
+      const match = tab.getAttribute('onclick')?.match(/'(\w+)'/);
+      const panel = match ? match[1] : null;
+      if(panel && permMap[panel]){
+        if(!currentUser.permessi[panel]){
+          tab.style.display = 'none';
+        } else {
+          if(!firstAllowed) firstAllowed = panel;
+        }
       }
     });
+    // Start on first allowed panel instead of dashboard
+    loadAll().then(()=>{
+      if(firstAllowed && firstAllowed !== 'dashboard'){
+        document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+        document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+        document.getElementById('panel-'+firstAllowed).classList.add('active');
+        const activeTab = Array.from(document.querySelectorAll('.nav-tab')).find(t=>t.getAttribute('onclick')?.includes("'"+firstAllowed+"'"));
+        if(activeTab) activeTab.classList.add('active');
+        if(firstAllowed==='magazzino') renderMagazzino();
+        if(firstAllowed==='ricette') renderRicette();
+        if(firstAllowed==='vendite') renderVendite();
+        if(firstAllowed==='alert') renderAlert();
+        if(firstAllowed==='servizio') renderServizio();
+      } else {
+        renderDashboard();
+      }
+    });
+    return;
   }
   loadAll();
 }
@@ -892,14 +923,16 @@ async function renderAdmin(){
     return;
   }
   el.innerHTML = users.map(u => {
-    const perms = typeof u.permessi==='string'?JSON.parse(u.permessi):(u.permessi||{});
+    let perms = {};
+    try { perms = typeof u.permessi==='string'?JSON.parse(u.permessi):(u.permessi||{}); } catch(e){}
     const permLabels = Object.entries(perms).filter(([k,v])=>v).map(([k])=>k).join(', ');
     return `<div class="user-card">
       <div class="user-card-left">
         <div class="user-avatar-lg">${u.nome.charAt(0).toUpperCase()}</div>
         <div>
           <div class="user-card-name">${u.nome} <span class="badge badge-blue" style="margin-left:6px">${u.ruolo}</span></div>
-          <div class="user-card-info">@${u.username} · Accesso: ${permLabels||'nessuno'}</div>
+          <div class="user-card-info">👤 Username: <b style="color:var(--text)">${u.username}</b> · Password: <b style="color:var(--text)">${u.password}</b></div>
+          <div class="user-card-info" style="margin-top:2px">Accesso: ${permLabels||'nessuno'}</div>
         </div>
       </div>
       <div class="user-card-right">
